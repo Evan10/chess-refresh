@@ -62,12 +62,22 @@ public class ValidMoveIdentifier {
     }
 
     private static Collection<ChessMove> findKingMoves(ChessBoard board, ChessPosition position, ChessPiece piece){
-
+        ChessGame.TeamColor c = piece.getTeamColor();
+        ArrayList<ChessMove> moves = new ArrayList<>();
         for (int x = -1;x <= 1 ; x++){
-
+            for (int y = -1;y <= 1 ; y++){
+                ChessPosition pos = position.offset(x,y);
+                if((x == 0 && y == 0)||!pos.isValid()) {
+                    continue;
+                }
+                ChessPiece p = board.getPiece(pos);
+                if (p == null || p.getTeamColor() != c) {
+                    moves.add( new ChessMove(position,pos));
+                }
+            }
         }
 
-        return List.of();
+        return moves;
     }
 
     private static Collection<ChessMove> findQueenMoves(ChessBoard board, ChessPosition position, ChessPiece piece){

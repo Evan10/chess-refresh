@@ -127,8 +127,16 @@ public class ValidMoveIdentifier {
     private static Collection<ChessMove> findPawnMoves(ChessBoard board, ChessPosition position, ChessPiece piece){
         ChessGame.TeamColor c = piece.getTeamColor();
         int direction = c == ChessGame.TeamColor.WHITE? 1 : -1;
-        ArrayList<ChessMove> moves = new ArrayList<>();
+        Collection<ChessMove> moves = new ArrayList<>();
 
+        moves.addAll(findPawnAdvanceMoves(board, position, piece, direction));
+        moves.addAll(findPawnAttackMoves(board, position, piece, direction));
+
+        return moves;
+    }
+
+    private static Collection<ChessMove> findPawnAdvanceMoves(ChessBoard board, ChessPosition position, ChessPiece piece, int direction){
+        ArrayList<ChessMove> moves = new ArrayList<>();
         ChessPosition single = position.offset(0,direction);
         if(!single.isValid()){
             return List.of();
@@ -149,30 +157,36 @@ public class ValidMoveIdentifier {
                 }
             }
         }
+        return moves;
+    }
 
-        ChessPosition attackLeft = position.offset(-1,direction);
+    private static Collection<ChessMove> findPawnAttackMoves(ChessBoard board, ChessPosition position, ChessPiece piece, int direction) {
+        ChessGame.TeamColor c = piece.getTeamColor();
+        ChessPiece p;
+        ArrayList<ChessMove> moves = new ArrayList<>();
+
+        ChessPosition attackLeft = position.offset(-1, direction);
         if (attackLeft.isValid()) {
             p = board.getPiece(attackLeft);
             if (p != null && p.getTeamColor() != c) {
-                if (isMovePromotable(single, piece)) {
+                if (isMovePromotable(attackLeft, piece)) {
                     moves.addAll(getMovePromotions(position, attackLeft));
                 } else {
                     moves.add(new ChessMove(position, attackLeft));
                 }
             }
         }
-        ChessPosition attackRight = position.offset(1,direction);
+        ChessPosition attackRight = position.offset(1, direction);
         if (attackRight.isValid()) {
             p = board.getPiece(attackRight);
             if (p != null && p.getTeamColor() != c) {
-                if (isMovePromotable(single, piece)) {
+                if (isMovePromotable(attackRight, piece)) {
                     moves.addAll(getMovePromotions(position, attackRight));
                 } else {
                     moves.add(new ChessMove(position, attackRight));
                 }
             }
         }
-
         return moves;
     }
 

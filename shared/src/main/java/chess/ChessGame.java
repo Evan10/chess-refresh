@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -57,13 +58,27 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+        ChessPiece piece = board.getPiece(startPosition);
+        if (piece == null){
+            return List.of();
+        }
+        Collection<ChessMove> moves = piece.pieceMoves(board,startPosition);
         ChessBoard moveTester = new ChessBoard();
         board.mirrorTo(moveTester);
 
         for(ChessMove move: moves){
+            ChessPiece.PieceType p = piece.getPieceType();
+            if(move.getPromotionPiece() != null){
+                p = move.getPromotionPiece();
+            }
+            ChessPiece endPiece = new ChessPiece(piece.getTeamColor(),p);
+            moveTester.addPiece(startPosition,null);
+            moveTester.addPiece(move.getEndPosition(),endPiece);
 
-
+            if(KingCheckIdentifier.isKingUnderAttack(moveTester,piece.getTeamColor())){
+                moves.remove(move);
+            }
+            board.mirrorTo(moveTester);
         }
 
         return board.getPiece(startPosition).pieceMoves(board,startPosition);
@@ -87,8 +102,15 @@ public class ChessGame {
         if(!moves.contains(move)){
             throw new InvalidMoveException("Invalid move");
         }
+
+        ChessPiece.PieceType p = piece.getPieceType();
+        if(move.getPromotionPiece() != null){
+            p = move.getPromotionPiece();
+        }
+        ChessPiece endPiece = new ChessPiece(piece.getTeamColor(),p);
+
         board.addPiece(move.getStartPosition(),null);
-        board.addPiece(move.getEndPosition(),piece);
+        board.addPiece(move.getEndPosition(),endPiece);
         toggleTurn();
     }
 

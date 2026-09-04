@@ -66,13 +66,13 @@ public class ValidMoveIdentifier {
         ArrayList<ChessMove> moves = new ArrayList<>();
         for (int x = -1;x <= 1 ; x++){
             for (int y = -1;y <= 1 ; y++){
-                ChessPosition pos = position.offset(x,y);
-                if((x == 0 && y == 0)||!pos.isValid()) {
+                ChessPosition next = position.offset(x,y);
+                if((x == 0 && y == 0)||!next.isValid()) {
                     continue;
                 }
-                ChessPiece p = board.getPiece(pos);
+                ChessPiece p = board.getPiece(next);
                 if (p == null || p.getTeamColor() != c) {
-                    moves.add( new ChessMove(position,pos));
+                    moves.add( new ChessMove(position,next));
                 }
             }
         }
@@ -96,10 +96,30 @@ public class ValidMoveIdentifier {
     }
 
     private static Collection<ChessMove> findKnightMoves(ChessBoard board, ChessPosition position, ChessPiece piece){
+        int[][] offsets = {
+                {-2, 1},{-2,-1},
+                { 2, 1},{ 2,-1},
+                {-1, 2},{-1,-2},
+                { 1, 2},{ 1,-2}};
 
+        ChessGame.TeamColor c = piece.getTeamColor();
+        ArrayList<ChessMove> moves = new ArrayList<>();
+        for (int[] offset : offsets) {
+            int x, y;
+            x = offset[0];
+            y = offset[1];
+            ChessPosition next = position.offset(x, y);
+            if (!next.isValid()) {
+                continue;
+            }
+            ChessPiece p = board.getPiece(next);
+            if (p != null && p.getTeamColor() == c) {
+                continue;
+            }
+            moves.add(new ChessMove(position, next));
+        }
 
-
-        return List.of();
+        return moves;
     }
 
     private static Collection<ChessMove> findPawnMoves(ChessBoard board, ChessPosition position, ChessPiece piece){

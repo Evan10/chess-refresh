@@ -58,6 +58,13 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+        ChessBoard moveTester = new ChessBoard();
+        board.mirrorTo(moveTester);
+
+        for(ChessMove move: moves){
+
+
+        }
 
         return board.getPiece(startPosition).pieceMoves(board,startPosition);
     }
@@ -73,12 +80,16 @@ public class ChessGame {
         if (piece == null){
             throw new InvalidMoveException("No piece at start position");
         }
+        if( piece.getTeamColor() != turn){
+            throw new InvalidMoveException("It it not this players turn");
+        }
         Collection<ChessMove> moves = validMoves(move.getStartPosition());
         if(!moves.contains(move)){
             throw new InvalidMoveException("Invalid move");
         }
         board.addPiece(move.getStartPosition(),null);
         board.addPiece(move.getEndPosition(),piece);
+        toggleTurn();
     }
 
     /**

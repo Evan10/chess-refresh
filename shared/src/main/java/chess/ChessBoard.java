@@ -87,6 +87,12 @@ public class ChessBoard {
         board = ChessConstants.GET_START_BOARD_DEEP_COPY();
     }
 
+    public void mirrorTo(ChessBoard tempBoard) {
+        for(int i = 0; i <8;i++){
+            tempBoard.board[i] = board[i].clone();
+        }
+    }
+
     @Override
     public String toString() {
         return "B{" + Arrays.toString(board) +"}";

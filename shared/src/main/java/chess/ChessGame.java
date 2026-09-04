@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +64,7 @@ public class ChessGame {
             return List.of();
         }
         Collection<ChessMove> moves = piece.pieceMoves(board,startPosition);
+        ArrayList<ChessMove> finalMoves = new ArrayList<>();
         ChessBoard moveTester = new ChessBoard();
         board.mirrorTo(moveTester);
 
@@ -75,13 +77,13 @@ public class ChessGame {
             moveTester.addPiece(startPosition,null);
             moveTester.addPiece(move.getEndPosition(),endPiece);
 
-            if(KingCheckIdentifier.isKingUnderAttack(moveTester,piece.getTeamColor())){
-                moves.remove(move);
+            if(!KingCheckIdentifier.isKingUnderAttack(moveTester,piece.getTeamColor())){
+                finalMoves.add(move);
             }
             board.mirrorTo(moveTester);
         }
 
-        return board.getPiece(startPosition).pieceMoves(board,startPosition);
+        return finalMoves;
     }
 
     /**

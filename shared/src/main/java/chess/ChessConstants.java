@@ -27,7 +27,10 @@ public class ChessConstants {
             {BR  ,BKn ,BB  ,BQ  ,BK  ,BB  ,BKn ,BR  }};
 
     public static ChessPiece[][] GET_START_BOARD_DEEP_COPY(){
-
-        return null;
+        ChessPiece[][] board = new ChessPiece[8][];
+        for(int i = 0; i < 8 ; i++){
+            board[i] = START_BOARD[i].clone();
+        }
+        return board;
     }
 }

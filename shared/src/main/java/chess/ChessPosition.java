@@ -34,6 +34,10 @@ public class ChessPosition {
         return col >= 1 && col <= 8 && row >= 1 && row <= 8;
     }
 
+    public ChessPosition offset(int offsetX,int offsetY){
+        return new ChessPosition(row + offsetY, col + offsetX);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

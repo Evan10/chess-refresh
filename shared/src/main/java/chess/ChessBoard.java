@@ -84,7 +84,7 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        board = ChessConstants.START_BOARD.clone();
+        board = ChessConstants.GET_START_BOARD_DEEP_COPY();
     }
 
     @Override

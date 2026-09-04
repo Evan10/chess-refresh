@@ -94,9 +94,24 @@ public class KingCheckIdentifier {
     }
 
     private static boolean isKingUnderAttackByPawn(ChessBoard board, ChessGame.TeamColor color, ChessPosition kingPosition) {
-
         int direction = color == ChessGame.TeamColor.WHITE ? 1 : -1;
 
+        ChessPosition leftAttack = kingPosition.offset(-1,direction);
+        if(leftAttack.isValid()){
+            ChessPiece piece = board.getPiece(leftAttack);
+            if(piece != null
+                    && piece.getPieceType() == ChessPiece.PieceType.PAWN
+                    && piece.getTeamColor() != color){
+                return true;
+            }
+        }
+        ChessPosition rightAttack = kingPosition.offset(1,direction);
+        if(rightAttack.isValid()){
+            ChessPiece piece = board.getPiece(rightAttack);
+            return piece != null
+                    && piece.getPieceType() == ChessPiece.PieceType.PAWN
+                    && piece.getTeamColor() != color;
+        }
 
         return false;
     }

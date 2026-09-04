@@ -16,7 +16,7 @@ public class ChessConstants {
     public static final ChessPiece WB = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
     public static final ChessPiece WP = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
 
-    public static final ChessPiece[][] START_BOARD = {
+    private static final ChessPiece[][] START_BOARD = {
             {WR  ,WKn ,WB  ,WQ  ,WK  ,WB  ,WKn ,WR  },
             {WP  ,WP  ,WP  ,WP  ,WP  ,WP  ,WP  ,WP  },
             {null,null,null,null,null,null,null,null},
@@ -26,4 +26,8 @@ public class ChessConstants {
             {BP  ,BP  ,BP  ,BP  ,BP  ,BP  ,BP  ,BP  },
             {BR  ,BKn ,BB  ,BQ  ,BK  ,BB  ,BKn ,BR  }};
 
+    public static ChessPiece[][] GET_START_BOARD_DEEP_COPY(){
+
+        return null;
+    }
 }

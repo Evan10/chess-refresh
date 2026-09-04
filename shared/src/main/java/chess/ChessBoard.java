@@ -54,6 +54,13 @@ public class ChessBoard {
         return board[i][j];
     }
 
+    /*
+    * Returns a collection of Chess Position that correspond to chess pieces
+    * from a query. Both piece type and team color can be left blank to signify "any"
+    * for example
+    *       findChessPieceLoc(null,ChessGame.TeamColor.BLACK);
+    * returns all black chess piece locations on the board
+   * */
     public Collection<ChessPosition> findChessPieceLoc(ChessPiece.PieceType type, ChessGame.TeamColor color){
         ArrayList<ChessPosition> positions = new ArrayList<>();
 
@@ -61,7 +68,9 @@ public class ChessBoard {
             for(int c = 1;c <=8;c++) {
                 ChessPosition pos = new ChessPosition(r, c);
                 ChessPiece p = getPiece(pos);
-                if(p != null && p.getTeamColor() == color && p.getPieceType()==type){
+                if(p != null
+                        && (color == null || p.getTeamColor() == color)
+                        && (type == null || p.getPieceType() == type)){
                     positions.add(pos);
                 }
             }

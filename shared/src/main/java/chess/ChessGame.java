@@ -16,6 +16,7 @@ public class ChessGame {
 
     public ChessGame() {
         board = new ChessBoard();
+        board.resetBoard();
         turn = TeamColor.WHITE;
     }
 
@@ -26,6 +27,7 @@ public class ChessGame {
         return turn;
     }
 
+    public boolean isTeamTurn(TeamColor color){ return color == turn;}
     /**
      * Sets which teams turn it is
      *
@@ -86,7 +88,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return KingCheckIdentifier.isKingUnderAttack(board,teamColor);
     }
 
     /**
@@ -96,7 +98,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return isInCheck(teamColor) && !hasValidMoves(teamColor);
     }
 
     /**
@@ -107,9 +109,20 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        return false;
+        return !isInCheck(teamColor) && isTeamTurn(teamColor) && !hasValidMoves(teamColor);
     }
 
+
+    public boolean hasValidMoves(TeamColor teamColor){
+        Collection<ChessPosition> teamPositions = board.findChessPieceLoc(null, teamColor);
+        for( ChessPosition pos : teamPositions){
+            ChessPiece piece = board.getPiece(pos);
+            if(piece != null && !piece.pieceMoves(board,pos).isEmpty()){
+                return true;
+            }
+        }
+        return false;
+    }
     /**
      * Sets this game's chessboard to a given board
      *

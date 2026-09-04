@@ -55,7 +55,9 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+
+        return board.getPiece(startPosition).pieceMoves(board,startPosition);
     }
 
     /**
@@ -105,7 +107,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return false;
     }
 
     /**

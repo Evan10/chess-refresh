@@ -1,6 +1,8 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -50,6 +52,22 @@ public class ChessBoard {
         i = position.getRow() - 1;
         j = position.getColumn() - 1;
         return board[i][j];
+    }
+
+    public Collection<ChessPosition> findChessPieceLoc(ChessPiece.PieceType type, ChessGame.TeamColor color){
+        ArrayList<ChessPosition> positions = new ArrayList<>();
+
+        for(int r = 1;r<=8; r++){
+            for(int c = 1;c <=8;c++) {
+                ChessPosition pos = new ChessPosition(r, c);
+                ChessPiece p = getPiece(pos);
+                if(p != null && p.getTeamColor() == color && p.getPieceType()==type){
+                    positions.add(pos);
+                }
+            }
+        }
+
+        return positions;
     }
 
     /**

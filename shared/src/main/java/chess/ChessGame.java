@@ -151,8 +151,7 @@ public class ChessGame {
     public boolean hasValidMoves(TeamColor teamColor){
         Collection<ChessPosition> teamPositions = board.findChessPieceLoc(null, teamColor);
         for( ChessPosition pos : teamPositions){
-            ChessPiece piece = board.getPiece(pos);
-            if(piece != null && !piece.pieceMoves(board,pos).isEmpty()){
+            if(!validMoves(pos).isEmpty()){
                 return true;
             }
         }

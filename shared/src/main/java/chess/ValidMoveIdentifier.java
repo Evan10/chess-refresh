@@ -1,5 +1,7 @@
 package chess;
 
+import com.sun.source.tree.WhileLoopTree;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -123,9 +125,71 @@ public class ValidMoveIdentifier {
     }
 
     private static Collection<ChessMove> findPawnMoves(ChessBoard board, ChessPosition position, ChessPiece piece){
+        ChessGame.TeamColor c = piece.getTeamColor();
+        int direction = c == ChessGame.TeamColor.WHITE? 1 : -1;
+        ArrayList<ChessMove> moves = new ArrayList<>();
 
+        ChessPosition single = position.offset(0,direction);
+        if(!single.isValid()){
+            return List.of();
+        }
+        ChessPiece p = board.getPiece(single);
+        if(p == null){
+            if (isMovePromotable(single,piece)){
+                moves.addAll(getMovePromotions(position,single));
+            }else{
+                moves.add(new ChessMove(position,single));
+            }
 
+            ChessPosition doubleStep = position.offset(0,direction * 2);
+            if (doubleStep.isValid() && isPawnAtStart(position,piece)) {
+                p = board.getPiece(doubleStep);
+                if (p == null) {
+                    moves.add(new ChessMove(position, doubleStep));
+                }
+            }
+        }
 
-        return List.of();
+        ChessPosition attackLeft = position.offset(-1,direction);
+        if (attackLeft.isValid()) {
+            p = board.getPiece(attackLeft);
+            if (p != null && p.getTeamColor() != c) {
+                if (isMovePromotable(single, piece)) {
+                    moves.addAll(getMovePromotions(position, attackLeft));
+                } else {
+                    moves.add(new ChessMove(position, attackLeft));
+                }
+            }
+        }
+        ChessPosition attackRight = position.offset(1,direction);
+        if (attackRight.isValid()) {
+            p = board.getPiece(attackRight);
+            if (p != null && p.getTeamColor() != c) {
+                if (isMovePromotable(single, piece)) {
+                    moves.addAll(getMovePromotions(position, attackRight));
+                } else {
+                    moves.add(new ChessMove(position, attackRight));
+                }
+            }
+        }
+
+        return moves;
+    }
+
+    private static Collection<ChessMove> getMovePromotions(ChessPosition start, ChessPosition end){
+        return List.of(new ChessMove(start,end, ChessPiece.PieceType.QUEEN),
+                new ChessMove(start,end, ChessPiece.PieceType.ROOK),
+                new ChessMove(start,end, ChessPiece.PieceType.BISHOP),
+                new ChessMove(start,end, ChessPiece.PieceType.KNIGHT));
+    }
+
+    private static boolean isPawnAtStart(ChessPosition position, ChessPiece piece){
+        ChessGame.TeamColor c = piece.getTeamColor();
+        return c == ChessGame.TeamColor.WHITE ? position.getRow() == 2 : position.getRow() == 7;
+    }
+
+    private static boolean isMovePromotable(ChessPosition position, ChessPiece piece){
+        ChessGame.TeamColor c = piece.getTeamColor();
+        return c == ChessGame.TeamColor.WHITE ? position.getRow() == 8 : position.getRow() == 1;
     }
 }

@@ -10,13 +10,13 @@ public class ClearDatabaseService {
     private GameDAO gameDAO;
     private UserDAO userDAO;
 
-    ClearDatabaseService(AuthDAO authDAO, GameDAO gameDAO, UserDAO userDAO){
+    public ClearDatabaseService(AuthDAO authDAO, GameDAO gameDAO, UserDAO userDAO){
         this.authDAO = authDAO;
         this.gameDAO = gameDAO;
         this.userDAO = userDAO;
     }
 
-    void clearDatabase(){
+    public void clearDatabase(){
         authDAO.clearAuth();
         gameDAO.clearGames();
         userDAO.clearUsers();

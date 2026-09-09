@@ -13,9 +13,6 @@ public class AuthService {
 
     private AuthDAO authDAO;
 
-
-
-
     public AuthService(AuthDAO authDAO){
         this.authDAO = authDAO;
     }
@@ -28,5 +25,6 @@ public class AuthService {
             return null;
         }
     }
+
 
 }

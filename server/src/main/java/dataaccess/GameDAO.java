@@ -10,9 +10,11 @@ public interface GameDAO {
 
     void clearGames();
 
-    String addGame(String gameName) throws InUseException;
-    void joinGame(ChessGame.TeamColor playerColor, String gameID) throws InUseException,DataNotFoundException;
+    void addGame(GameData gameData);
+    void joinGame(ChessGame.TeamColor playerColor, String username, int gameID) throws InUseException,DataNotFoundException;
     Collection<GameData> listGames();
 
     boolean isEmpty();
+
+    int nextID();
 }

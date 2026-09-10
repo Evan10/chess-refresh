@@ -12,6 +12,8 @@ import model.AuthData;
 import org.eclipse.jetty.http.HttpStatus;
 import request.CreateGameRequest;
 import request.JoinGameRequest;
+import request.LoginRequest;
+import request.RegisterRequest;
 import result.CreateGameResult;
 import result.FailureOrResult;
 import result.FailureResult;
@@ -19,12 +21,17 @@ import result.ListGamesResult;
 import service.AuthService;
 import service.ClearDatabaseService;
 import service.GameService;
+import service.UserService;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.RecordComponent;
 import java.util.Map;
 
 public class Server {
 
     private final Javalin javalin;
+    private Record r;
 
     public Server() {
 
@@ -36,6 +43,7 @@ public class Server {
         AuthService authService = new AuthService(authDAO);
         ClearDatabaseService clearDatabaseService = new ClearDatabaseService(authDAO,gameDAO,userDAO);
         GameService gameService = new GameService(gameDAO);
+        UserService userService = new UserService(userDAO,authDAO);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .before((ctx )->{
@@ -43,17 +51,29 @@ public class Server {
                     ctx.attribute("auth",authData);
                 })
                 .post("/user",(ctx)->{
-
+                    RegisterRequest req = new Gson().fromJson(ctx.body(),RegisterRequest.class);
+                    if(!isValidRequest(req)){
+                        ctx.status(400);
+                        return;
+                    }
+                    resolveServiceResult(ctx,userService.registerUser(req));
                 })
                 .post("/session",(ctx)->{
-
+                    LoginRequest req = new Gson().fromJson(ctx.body(),LoginRequest.class);
+                    if(!isValidRequest(req)){
+                        ctx.status(400);
+                        return;
+                    }
+                    resolveServiceResult(ctx,userService.login(req));
                 })
                 .delete("/session",(ctx) -> {
                     if(!isAuthorized(ctx)){
                         unauthorized(ctx);
                         return;
                     }
-
+                    AuthData authData = ctx.attribute("auth");
+                    assert authData != null;
+                    resolveServiceResult(ctx,userService.logout(authData.authToken()));
                 })
                 .get("/game",(ctx) -> {
                     if(!isAuthorized(ctx)){
@@ -68,6 +88,10 @@ public class Server {
                         return;
                     }
                     CreateGameRequest req = new Gson().fromJson(ctx.body(),CreateGameRequest.class);
+                    if(!isValidRequest(req)){
+                        ctx.status(400);
+                        return;
+                    }
                     resolveServiceResult(ctx,gameService.createGame(req));
                 })
                 .put("/game",(ctx)->{
@@ -76,16 +100,23 @@ public class Server {
                         return;
                     }
                     JoinGameRequest req = new Gson().fromJson(ctx.body(),JoinGameRequest.class);
-                    resolveServiceResult(ctx,gameService.joinGame(req));
+                    if(!isValidRequest(req)){
+                        ctx.status(400);
+                        return;
+                    }
+                    AuthData authData = ctx.attribute("auth");
+                    assert authData != null;
+                    resolveServiceResult(ctx,gameService.joinGame(req,authData.username()));
                 })
                 .delete("/db",(ctx)->{
-                    clearDatabaseService.clearDatabase();
-                    ctx.status(HttpStatus.OK_200);
-                    ctx.contentType(ContentType.APPLICATION_JSON);
-                    ctx.result("{}");
+                    resolveServiceResult(ctx,clearDatabaseService.clearDatabase());
                 })
                 .exception(RuntimeException.class,(e, ctx) -> {
                     ctx.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
+                })
+                .error(HttpStatus.BAD_REQUEST_400,(ctx)->{
+                    ctx.contentType(ContentType.APPLICATION_JSON);
+                    ctx.result(new Gson().toJson(Map.of("message","Error: bad request")));
                 })
                 .error(HttpStatus.INTERNAL_SERVER_ERROR_500,(ctx)->{
                     ctx.contentType(ContentType.APPLICATION_JSON);
@@ -117,10 +148,32 @@ public class Server {
     public <T extends Record> void resolveServiceResult(Context ctx, FailureOrResult<T> result){
         ctx.contentType(ContentType.APPLICATION_JSON);
         if(result.wasSuccessful()){
+            ctx.status(HttpStatus.OK_200);
             ctx.result(new Gson().toJson(result.getResult()));
         }else{
             ctx.status(result.getFailure().status());
             ctx.result(new Gson().toJson(result.getFailure()));
         }
     }
-}
+
+    /*
+    *   returns true if every field in a Record object is not null
+    *   and furthermore that all strings are not empty
+    * */
+    public <T extends Record> boolean isValidRequest(T t){
+        for(RecordComponent rc: t.getClass().getRecordComponents()){
+            try {
+                Object o = rc.getAccessor().invoke(t);
+                if(o == null){
+                    return false;
+                }else if(o instanceof String s && s.isEmpty()){
+                    return false;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return true;
+        }
+    }
+

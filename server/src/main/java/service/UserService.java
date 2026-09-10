@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataNotFoundException;
 import dataaccess.InUseException;
 import dataaccess.UserDAO;
 import model.AuthData;
@@ -26,24 +27,34 @@ public class UserService {
             return new FailureOrResult<>(new FailureResult(403, "Error: already taken"));
         }
         AuthData authData = addAuth(req.username());
-
-
-        return new FailureOrResult<>(new FailureResult(500, "Error: not implemented"));
+        return new FailureOrResult<>(new RegisterResult(authData.username(),authData.authToken()));
     }
 
     public FailureOrResult<LoginResult> login(LoginRequest req){
-
-        return new FailureOrResult<>(new FailureResult(500, "Error: not implemented"));
+        try {
+            UserData userData = userDAO.getUser(req.username());
+            if(!userData.password().equals(req.password())){
+                return new FailureOrResult<>(new FailureResult(401,"Error: unauthorized"));
+            }
+            AuthData authData = addAuth(req.username());
+            return new FailureOrResult<>(new LoginResult(authData.username(),authData.authToken()));
+        } catch (DataNotFoundException e) {
+            return new FailureOrResult<>(new FailureResult(401, "Error: unauthorized"));
+        }
     }
 
-    public FailureOrResult<EmptyResult> logout(){
-
-        return new FailureOrResult<>(new FailureResult(500, "Error: not implemented"));
+    public FailureOrResult<EmptyResult> logout(String authToken){
+        try {
+            authDAO.removeAuth(authToken);
+            return new FailureOrResult<>(new EmptyResult());
+        } catch (DataNotFoundException e) {
+            return new FailureOrResult<>(new FailureResult(401, "Error: unauthorized"));
+        }
     }
 
     private AuthData addAuth(String username){
         String authToken = UUIDGenerator.generateUUID();
-        AuthData authData = new AuthData(username,authToken);
+        AuthData authData = new AuthData(authToken,username);
         authDAO.addAuth(authData);
         return authData;
     }

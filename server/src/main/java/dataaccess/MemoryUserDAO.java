@@ -10,7 +10,6 @@ public class MemoryUserDAO implements UserDAO{
     private Map<String, UserData> users;
     public MemoryUserDAO(){
         users = new HashMap<>();
-        users.put("bob", new UserData("bob", "bob","bob@bob.com"));
     }
 
     @Override

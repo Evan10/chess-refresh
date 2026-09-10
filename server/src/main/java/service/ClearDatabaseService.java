@@ -3,6 +3,8 @@ package service;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
+import result.EmptyResult;
+import result.FailureOrResult;
 
 public class ClearDatabaseService {
 
@@ -16,9 +18,10 @@ public class ClearDatabaseService {
         this.userDAO = userDAO;
     }
 
-    public void clearDatabase(){
+    public FailureOrResult<EmptyResult> clearDatabase(){
         authDAO.clearAuth();
         gameDAO.clearGames();
         userDAO.clearUsers();
+        return new FailureOrResult<>(new EmptyResult());
     }
 }

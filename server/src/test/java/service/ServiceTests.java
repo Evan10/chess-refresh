@@ -1,16 +1,17 @@
 package service;
 
 import chess.ChessGame;
-import dataaccess.AuthDAO;
-import dataaccess.DAOFactory;
-import dataaccess.GameDAO;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import request.RegisterRequest;
+import result.EmptyResult;
+import result.FailureOrResult;
+import result.RegisterResult;
 
 public class ServiceTests {
 
@@ -52,30 +53,45 @@ public class ServiceTests {
         Assertions.assertDoesNotThrow(()->userDAO.addUser(DUMMY_USER));
         authDAO.addAuth(DUMMY_AUTH);
 
-        Assertions.assertFalse(gameDAO.isEmpty());
+        Assertions.assertFalse(gameDAO.isEmpty()); // verify that DAOs are not empty now
         Assertions.assertFalse(userDAO.isEmpty());
         Assertions.assertFalse(authDAO.isEmpty());
 
+        FailureOrResult<EmptyResult> res = clearDatabaseService.clearDatabase();
+        Assertions.assertTrue(res.wasSuccessful());
 
-
+        Assertions.assertTrue(gameDAO.isEmpty()); // verify empty at after clear
+        Assertions.assertTrue(userDAO.isEmpty());
+        Assertions.assertTrue(authDAO.isEmpty());
     }
 
     @Test void authenticateSuccess(){
-
+        authDAO.addAuth(DUMMY_AUTH);
+        AuthData res = authService.authenticate(DUMMY_AUTH.authToken());
+        Assertions.assertNotNull(res);
     }
 
     @Test void authenticateIsNullFail(){
-
+        AuthData res = authService.authenticate(DUMMY_AUTH.authToken());
+        Assertions.assertNull(res);
     }
 
     @Test
     public void registerUserTestSuccess(){
-
+        Assertions.assertTrue(userDAO.isEmpty());
+        RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
+        FailureOrResult<RegisterResult> res = userService.registerUser(req);
+        Assertions.assertTrue(res.wasSuccessful());
+        Assertions.assertFalse(userDAO.isEmpty());
     }
 
     @Test
     public void registerUserFail(){
-
+        RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
+        FailureOrResult<RegisterResult> res = userService.registerUser(req);
+        Assertions.assertTrue(res.wasSuccessful());
+        FailureOrResult<RegisterResult> res2 = userService.registerUser(req);
+        Assertions.assertFalse(res2.wasSuccessful());
     }
 
     @Test

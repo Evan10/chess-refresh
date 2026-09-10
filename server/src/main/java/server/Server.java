@@ -10,8 +10,15 @@ import io.javalin.http.ContentType;
 import io.javalin.http.Context;
 import model.AuthData;
 import org.eclipse.jetty.http.HttpStatus;
+import request.CreateGameRequest;
+import request.JoinGameRequest;
+import result.CreateGameResult;
+import result.FailureOrResult;
+import result.FailureResult;
+import result.ListGamesResult;
 import service.AuthService;
 import service.ClearDatabaseService;
+import service.GameService;
 
 import java.util.Map;
 
@@ -28,7 +35,7 @@ public class Server {
 
         AuthService authService = new AuthService(authDAO);
         ClearDatabaseService clearDatabaseService = new ClearDatabaseService(authDAO,gameDAO,userDAO);
-
+        GameService gameService = new GameService(gameDAO);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .before((ctx )->{
@@ -54,18 +61,23 @@ public class Server {
                         unauthorized(ctx);
                         return;
                     }
+                    resolveServiceResult(ctx,gameService.getGames());
                 })
                 .post("/game",(ctx)->{
                     if(!isAuthorized(ctx)){
                         unauthorized(ctx);
                         return;
                     }
+                    CreateGameRequest req = new Gson().fromJson(ctx.body(),CreateGameRequest.class);
+                    resolveServiceResult(ctx,gameService.createGame(req));
                 })
                 .put("/game",(ctx)->{
                     if(!isAuthorized(ctx)){
                         unauthorized(ctx);
                         return;
                     }
+                    JoinGameRequest req = new Gson().fromJson(ctx.body(),JoinGameRequest.class);
+                    resolveServiceResult(ctx,gameService.joinGame(req));
                 })
                 .delete("/db",(ctx)->{
                     clearDatabaseService.clearDatabase();
@@ -103,4 +115,13 @@ public class Server {
         ctx.result(new Gson().toJson(Map.of("message","Error:unauthorized")));
     }
 
+    public <T extends Record> void resolveServiceResult(Context ctx, FailureOrResult<T> result){
+        ctx.contentType(ContentType.APPLICATION_JSON);
+        if(result.wasSuccessful()){
+            ctx.result(new Gson().toJson(result.getResult()));
+        }else{
+            ctx.status(result.getFailure().status());
+            ctx.result(new Gson().toJson(result.getFailure()));
+        }
+    }
 }

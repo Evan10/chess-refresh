@@ -25,7 +25,7 @@ public class GameService {
         return new FailureOrResult<>(new FailureResult(500, "Error: not implemented"));
     }
 
-    public FailureOrResult<JoinGameResult> joinGameResult(JoinGameRequest req){
+    public FailureOrResult<JoinGameResult> joinGame(JoinGameRequest req){
 
 
         return new FailureOrResult<>(new FailureResult(500, "Error: not implemented"));

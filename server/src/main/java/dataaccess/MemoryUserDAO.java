@@ -2,24 +2,46 @@ package dataaccess;
 
 import model.UserData;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MemoryUserDAO implements UserDAO{
+
+    private Map<String, UserData> users;
+    public MemoryUserDAO(){
+        users = new HashMap<>();
+        users.put("bob", new UserData("bob", "bob","bob@bob.com"));
+    }
+
     @Override
     public void clearUsers() {
-
+        users.clear();
     }
 
     @Override
     public String addUser(UserData userData) throws InUseException {
-        return "";
+        if(users.containsKey(userData.username())){
+            throw new InUseException("Username in use");
+        }
+        users.put(userData.username(),userData);
+        return userData.username();
     }
 
     @Override
     public UserData getUser(String username) throws DataNotFoundException {
-        return null;
+        if(!users.containsKey(username)){
+            throw new DataNotFoundException("User not found");
+        }
+        return users.get(username);
+    }
+
+    @Override
+    public boolean usernameInUse(String username) {
+        return users.containsKey(username);
     }
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return users.isEmpty();
     }
 }

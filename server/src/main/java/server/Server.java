@@ -41,7 +41,6 @@ public class Server {
                 .before((ctx )->{
                     AuthData authData = authService.authenticate(ctx.header("authorization"));
                     ctx.attribute("auth",authData);
-                    System.out.println((AuthData)ctx.attribute("auth"));
                 })
                 .post("/user",(ctx)->{
 

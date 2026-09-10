@@ -8,10 +8,9 @@ import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import request.LoginRequest;
 import request.RegisterRequest;
-import result.EmptyResult;
-import result.FailureOrResult;
-import result.RegisterResult;
+import result.*;
 
 public class ServiceTests {
 
@@ -96,25 +95,54 @@ public class ServiceTests {
 
     @Test
     public void loginUserTestSuccess(){
+        RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
+        userService.registerUser(req);
+        authDAO.clearAuth();
 
+        LoginRequest lreq = new LoginRequest(DUMMY_USER.username(),DUMMY_USER.password());
+        FailureOrResult<LoginResult> lres = userService.login(lreq);
+        Assertions.assertTrue(lres.wasSuccessful());
+        LoginResult r = lres.getResult();
+        Assertions.assertEquals(DUMMY_USER.username(),r.username());
     }
 
     @Test
     public void loginUserWrongPasswordFail(){
+        RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
+        userService.registerUser(req);
+        authDAO.clearAuth();
 
+        LoginRequest lreq = new LoginRequest(DUMMY_USER.username(),"wrongPassword");
+        FailureOrResult<LoginResult> lres = userService.login(lreq);
+        Assertions.assertFalse(lres.wasSuccessful());
     }
     @Test
     public void loginNoSuchUserFail(){
-
+        LoginRequest lreq = new LoginRequest(DUMMY_USER.username(),DUMMY_USER.username());
+        FailureOrResult<LoginResult> lres = userService.login(lreq);
+        Assertions.assertFalse(lres.wasSuccessful());
     }
 
     @Test
     public void logoutSuccess(){
+        RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
+        FailureOrResult<RegisterResult> res = userService.registerUser(req);
+        Assertions.assertTrue(res.wasSuccessful());
+        RegisterResult rres = res.getResult();
 
+        Assertions.assertDoesNotThrow(()->authDAO.getUsername(rres.authToken()));
+
+        FailureOrResult<EmptyResult> lores =  userService.logout(rres.authToken());
+        Assertions.assertTrue(lores.wasSuccessful());
+
+        Assertions.assertThrows(DataNotFoundException.class, ()->authDAO.getUsername(rres.authToken()));
     }
 
     @Test
     public void logoutNoSuchUserFail(){
+
+        FailureOrResult<EmptyResult> res =  userService.logout("invalidToken");
+        Assertions.assertFalse(res.wasSuccessful());
 
     }
 

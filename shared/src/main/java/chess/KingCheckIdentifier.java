@@ -23,7 +23,9 @@ public class KingCheckIdentifier {
         ChessPosition pos = start;
         for (int i = 0; i < 8; i++) {
             pos = pos.offset(xDirection, yDirection);
-            if (!pos.isValid()) break;
+            if (!pos.isValid()) {
+                break;
+            }
             ChessPiece piece = board.getPiece(pos);
             if (piece != null) {
                 return piece;
@@ -81,7 +83,9 @@ public class KingCheckIdentifier {
 
         for (int[] os : offsets) {
             ChessPosition pos = kingPosition.offset(os[0], os[1]);
-            if (!pos.isValid()) continue;
+            if (!pos.isValid()) {
+                continue;
+            }
             ChessPiece piece = board.getPiece(pos);
             if (piece != null
                     && piece.getPieceType() == ChessPiece.PieceType.KNIGHT
@@ -96,17 +100,17 @@ public class KingCheckIdentifier {
     private static boolean isKingUnderAttackByPawn(ChessBoard board, ChessGame.TeamColor color, ChessPosition kingPosition) {
         int direction = color == ChessGame.TeamColor.WHITE ? 1 : -1;
 
-        ChessPosition leftAttack = kingPosition.offset(-1,direction);
-        if(leftAttack.isValid()){
+        ChessPosition leftAttack = kingPosition.offset(-1, direction);
+        if (leftAttack.isValid()) {
             ChessPiece piece = board.getPiece(leftAttack);
-            if(piece != null
+            if (piece != null
                     && piece.getPieceType() == ChessPiece.PieceType.PAWN
-                    && piece.getTeamColor() != color){
+                    && piece.getTeamColor() != color) {
                 return true;
             }
         }
-        ChessPosition rightAttack = kingPosition.offset(1,direction);
-        if(rightAttack.isValid()){
+        ChessPosition rightAttack = kingPosition.offset(1, direction);
+        if (rightAttack.isValid()) {
             ChessPiece piece = board.getPiece(rightAttack);
             return piece != null
                     && piece.getPieceType() == ChessPiece.PieceType.PAWN
@@ -120,11 +124,15 @@ public class KingCheckIdentifier {
 
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
-                if(x == 0 && y == 0) continue;
-                ChessPosition pos = kingPosition.offset(x,y);
-                if(!pos.isValid()) continue;
+                if (x == 0 && y == 0) {
+                    continue;
+                }
+                ChessPosition pos = kingPosition.offset(x, y);
+                if (!pos.isValid()) {
+                    continue;
+                }
                 ChessPiece piece = board.getPiece(pos);
-                if(piece!= null && piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() != color){
+                if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() != color) {
                     return true;
                 }
             }

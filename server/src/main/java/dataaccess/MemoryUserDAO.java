@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class MemoryUserDAO implements UserDAO{
 
-    private Map<String, UserData> users;
+    private final Map<String, UserData> users;
     public MemoryUserDAO(){
         users = new HashMap<>();
     }
@@ -32,11 +32,6 @@ public class MemoryUserDAO implements UserDAO{
             throw new DataNotFoundException("User not found");
         }
         return users.get(username);
-    }
-
-    @Override
-    public boolean usernameInUse(String username) {
-        return users.containsKey(username);
     }
 
     @Override

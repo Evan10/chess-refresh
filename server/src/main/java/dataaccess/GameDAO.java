@@ -2,7 +2,6 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
-import service.ChessUserRole;
 
 import java.util.Collection;
 

@@ -55,7 +55,8 @@ public class StandardAPITests {
         String htmlFromServer = serverFacade.file("/").replaceAll("\r", "");
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(), "Server response code was not 200 OK");
         Assertions.assertNotNull(htmlFromServer, "Server returned an empty file");
-        Assertions.assertTrue(htmlFromServer.contains("CS 240 Chess Server Web API"), "file returned did not contain an exact match of text from provided index.html");
+        Assertions.assertTrue(htmlFromServer.contains("CS 240 Chess Server Web API"),
+                "file returned did not contain an exact match of text from provided index.html");
     }
 
     @Test
@@ -65,7 +66,8 @@ public class StandardAPITests {
         TestAuthResult loginResult = serverFacade.login(existingUser);
 
         assertHttpOk(loginResult);
-        Assertions.assertEquals(existingUser.getUsername(), loginResult.getUsername(), "Response did not give the same username as user");
+        Assertions.assertEquals(existingUser.getUsername(), loginResult.getUsername(),
+                "Response did not give the same username as user");
         Assertions.assertNotNull(loginResult.getAuthToken(), "Response did not return authentication String");
     }
 
@@ -73,7 +75,8 @@ public class StandardAPITests {
     @Order(3)
     @DisplayName("Login Bad Request")
     public void loginBadRequest() {
-        TestUser[] incompleteLoginRequests = {new TestUser(null, existingUser.getPassword()), new TestUser(existingUser.getUsername(), null),};
+        TestUser[] incompleteLoginRequests = {new TestUser(null, existingUser.getPassword()),
+                new TestUser(existingUser.getUsername(), null),};
 
         for (TestUser incompleteLoginRequest : incompleteLoginRequests) {
             TestAuthResult loginResult = serverFacade.login(incompleteLoginRequest);
@@ -87,7 +90,8 @@ public class StandardAPITests {
     @Order(4)
     @DisplayName("Login Unauthorized (Multiple Forms)")
     public void loginUnauthorized() {
-        TestUser[] unauthorizedLoginRequests = {newUser, new TestUser(existingUser.getUsername(), "BAD!PASSWORD")};
+        TestUser[] unauthorizedLoginRequests = {newUser, new TestUser(existingUser.getUsername(),
+                "BAD!PASSWORD")};
 
         for (TestUser unauthorizedLoginRequest : unauthorizedLoginRequests) {
             TestAuthResult loginResult = serverFacade.login(unauthorizedLoginRequest);
@@ -105,8 +109,10 @@ public class StandardAPITests {
         TestAuthResult registerResult = serverFacade.register(newUser);
 
         assertHttpOk(registerResult);
-        Assertions.assertEquals(newUser.getUsername(), registerResult.getUsername(), "Response did not have the same username as was registered");
-        Assertions.assertNotNull(registerResult.getAuthToken(), "Response did not contain an authentication string");
+        Assertions.assertEquals(newUser.getUsername(), registerResult.getUsername(),
+                "Response did not have the same username as was registered");
+        Assertions.assertNotNull(registerResult.getAuthToken(),
+                "Response did not contain an authentication string");
     }
 
     @Test
@@ -208,8 +214,10 @@ public class StandardAPITests {
 
         Assertions.assertNotNull(listResult.getGames(), "List result did not contain games");
         Assertions.assertEquals(1, listResult.getGames().length, "List result is incorrect size");
-        Assertions.assertEquals(existingUser.getUsername(), listResult.getGames()[0].getWhiteUsername(), "Username of joined player not present in list result");
-        Assertions.assertNull(listResult.getGames()[0].getBlackUsername(), "Username present on non-joined color");
+        Assertions.assertEquals(existingUser.getUsername(), listResult.getGames()[0].getWhiteUsername(),
+                "Username of joined player not present in list result");
+        Assertions.assertNull(listResult.getGames()[0].getBlackUsername(),
+                "Username present on non-joined color");
     }
 
     @Test
@@ -310,13 +318,11 @@ public class StandardAPITests {
         serverFacade.joinPlayer(new TestJoinRequest(ChessGame.TeamColor.BLACK, game1.getGameID()), authA.getAuthToken());
         expectedList[0] = new TestListEntry(game1.getGameID(), game1Name, null, authA.getUsername());
 
-
         //1 as white from B
         String game2Name = "Lonely";
         TestCreateResult game2 = serverFacade.createGame(new TestCreateRequest(game2Name), authB.getAuthToken());
         serverFacade.joinPlayer(new TestJoinRequest(ChessGame.TeamColor.WHITE, game2.getGameID()), authB.getAuthToken());
         expectedList[1] = new TestListEntry(game2.getGameID(), game2Name, authB.getUsername(), null);
-
 
         //1 of each from C
         String game3Name = "GG";
@@ -325,14 +331,12 @@ public class StandardAPITests {
         serverFacade.joinPlayer(new TestJoinRequest(ChessGame.TeamColor.BLACK, game3.getGameID()), authA.getAuthToken());
         expectedList[2] = new TestListEntry(game3.getGameID(), game3Name, authC.getUsername(), authA.getUsername());
 
-
         //C play self
         String game4Name = "All by myself";
         TestCreateResult game4 = serverFacade.createGame(new TestCreateRequest(game4Name), authC.getAuthToken());
         serverFacade.joinPlayer(new TestJoinRequest(ChessGame.TeamColor.WHITE, game4.getGameID()), authC.getAuthToken());
         serverFacade.joinPlayer(new TestJoinRequest(ChessGame.TeamColor.BLACK, game4.getGameID()), authC.getAuthToken());
         expectedList[3] = new TestListEntry(game4.getGameID(), game4Name, authC.getUsername(), authC.getUsername());
-
 
         //list games
         TestListResult listResult = serverFacade.listGames(existingAuth);
@@ -359,9 +363,12 @@ public class StandardAPITests {
         assertHttpOk(loginTwo);
         Assertions.assertNotNull(loginTwo.getAuthToken(), "Login result did not contain an authToken");
 
-        Assertions.assertNotEquals(existingAuth, loginOne.getAuthToken(), "Authtoken returned by login matched authtoken from prior register");
-        Assertions.assertNotEquals(existingAuth, loginTwo.getAuthToken(), "Authtoken returned by login matched authtoken from prior register");
-        Assertions.assertNotEquals(loginOne.getAuthToken(), loginTwo.getAuthToken(), "Authtoken returned by login matched authtoken from prior login");
+        Assertions.assertNotEquals(existingAuth, loginOne.getAuthToken(),
+                "Authtoken returned by login matched authtoken from prior register");
+        Assertions.assertNotEquals(existingAuth, loginTwo.getAuthToken(),
+                "Authtoken returned by login matched authtoken from prior register");
+        Assertions.assertNotEquals(loginOne.getAuthToken(), loginTwo.getAuthToken(),
+                "Authtoken returned by login matched authtoken from prior login");
     }
 
     @Test
@@ -379,21 +386,20 @@ public class StandardAPITests {
         TestCreateResult createResult = serverFacade.createGame(createRequest, existingAuth);
         assertHttpOk(createResult);
 
-
         TestResult logoutResult = serverFacade.logout(existingAuth);
         assertHttpOk(logoutResult);
-
 
         TestJoinRequest joinRequest = new TestJoinRequest(ChessGame.TeamColor.WHITE, createResult.getGameID());
         TestResult joinResult = serverFacade.joinPlayer(joinRequest, loginOne.getAuthToken());
         assertHttpOk(joinResult);
 
-
         TestListResult listResult = serverFacade.listGames(loginTwo.getAuthToken());
         assertHttpOk(listResult);
         Assertions.assertNotNull(listResult.getGames(), "List result did not contain games");
-        Assertions.assertEquals(1, listResult.getGames().length, "List result contains incorrect number of games");
-        Assertions.assertEquals(existingUser.getUsername(), listResult.getGames()[0].getWhiteUsername(), "incorrect username on joined game");
+        Assertions.assertEquals(1, listResult.getGames().length,
+                "List result contains incorrect number of games");
+        Assertions.assertEquals(existingUser.getUsername(), listResult.getGames()[0].getWhiteUsername(),
+                "incorrect username on joined game");
     }
 
     @Test
@@ -403,57 +409,47 @@ public class StandardAPITests {
         //create filler games
         serverFacade.createGame(new TestCreateRequest("Mediocre game"), existingAuth);
         serverFacade.createGame(new TestCreateRequest("Awesome game"), existingAuth);
-
         //log in new user
         TestUser user = new TestUser("ClearMe", "cleared", "clear@mail.com");
         TestAuthResult registerResult = serverFacade.register(user);
-
         //create and join game for new user
-        TestCreateResult createResult = serverFacade.createGame(new TestCreateRequest("Clear game"), registerResult.getAuthToken());
-
+        TestCreateResult createResult = serverFacade.createGame(new TestCreateRequest("Clear game"),
+                registerResult.getAuthToken());
         TestJoinRequest joinRequest = new TestJoinRequest(ChessGame.TeamColor.WHITE, createResult.getGameID());
         serverFacade.joinPlayer(joinRequest, registerResult.getAuthToken());
-
         //do clear
         TestResult clearResult = serverFacade.clear();
-
         //test clear successful
         assertHttpOk(clearResult);
-
         //make sure neither user can log in
         //first user
         TestAuthResult loginResult = serverFacade.login(existingUser);
         assertHttpUnauthorized(loginResult);
-
         //second user
         loginResult = serverFacade.login(user);
         assertHttpUnauthorized(loginResult);
-
         //try to use old auth token to list games
         TestListResult listResult = serverFacade.listGames(existingAuth);
         assertHttpUnauthorized(listResult);
-
         //log in new user and check that list is empty
         registerResult = serverFacade.register(user);
         assertHttpOk(registerResult);
         listResult = serverFacade.listGames(registerResult.getAuthToken());
         assertHttpOk(listResult);
-
         //check listResult
         Assertions.assertNotNull(listResult.getGames(), "List result did not contain an empty list of games");
-        Assertions.assertEquals(0, listResult.getGames().length, "list result did not return 0 games after clear");
+        Assertions.assertEquals(0, listResult.getGames().length,
+                "list result did not return 0 games after clear");
     }
 
     @Test
     @Order(23)
     @DisplayName("Multiple Clears")
     public void clearMultipleTimes() {
-
         //clear multiple times
         serverFacade.clear();
         serverFacade.clear();
         TestResult result = serverFacade.clear();
-
         //make sure returned good
         assertHttpOk(result);
     }
@@ -461,8 +457,11 @@ public class StandardAPITests {
     // ### HELPER ASSERTIONS ###
 
     private void assertHttpOk(TestResult result) {
-        Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(), "Server response code was not 200 OK (message: %s)".formatted(result.getMessage()));
-        Assertions.assertFalse(result.getMessage() != null && result.getMessage().toLowerCase(Locale.ROOT).contains("error"), "Result returned an error message");
+        Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(),
+                "Server response code was not 200 OK (message: %s)".formatted(result.getMessage()));
+        Assertions.assertFalse(result.getMessage() != null
+                && result.getMessage().toLowerCase(Locale.ROOT).contains("error"),
+                "Result returned an error message");
     }
 
     private void assertHttpBadRequest(TestResult result) {
@@ -478,14 +477,15 @@ public class StandardAPITests {
     }
 
     private void assertHttpError(TestResult result, int statusCode, String message) {
-        Assertions.assertEquals(statusCode, serverFacade.getStatusCode(), "Server response code was not %d %s (message: %s)".formatted(statusCode, message, result.getMessage()));
+        Assertions.assertEquals(statusCode, serverFacade.getStatusCode(),
+                "Server response code was not %d %s (message: %s)".formatted(statusCode, message, result.getMessage()));
         Assertions.assertNotNull(result.getMessage(), "Invalid Request didn't return an error message");
-        Assertions.assertTrue(result.getMessage().toLowerCase(Locale.ROOT).contains("error"), "Error message didn't contain the word \"Error\"");
+        Assertions.assertTrue(result.getMessage().toLowerCase(Locale.ROOT).contains("error"),
+                "Error message didn't contain the word \"Error\"");
     }
 
     private void assertAuthFieldsMissing(TestAuthResult result) {
         Assertions.assertNull(result.getUsername(), "Response incorrectly returned username");
         Assertions.assertNull(result.getAuthToken(), "Response incorrectly return authentication String");
     }
-
 }

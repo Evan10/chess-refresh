@@ -8,15 +8,22 @@ import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import request.CreateGameRequest;
+import request.JoinGameRequest;
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.*;
+
+import java.util.Collection;
 
 public class ServiceTests {
 
     private static final GameData DUMMY_GAME = new GameData(-1," ", " "," game", new ChessGame());
     private static final UserData DUMMY_USER = new UserData("bob","b0b","bob@bob.com");
     private static final AuthData DUMMY_AUTH = new AuthData("dummyToken","bob");
+
+    private static final GameData DUMMY_GAME_NO_WHITE = new GameData(-1,null, " "," game", new ChessGame());
+
 
     private GameDAO gameDAO;
     private UserDAO userDAO;
@@ -148,30 +155,48 @@ public class ServiceTests {
 
     @Test
     public void getGamesSuccess(){
-
+        gameDAO.addGame(DUMMY_GAME);
+        FailureOrResult<ListGamesResult> res = gameService.getGames();
+        Assertions.assertTrue(res.wasSuccessful());
+        ListGamesResult r = res.getResult();
+        Assertions.assertTrue(r.games().contains(DUMMY_GAME));
     }
 
     @Test
     public void createGameSuccess(){
-
+        CreateGameRequest req = new CreateGameRequest("Game");
+        FailureOrResult<CreateGameResult> res = gameService.createGame(req);
+        Assertions.assertTrue(res.wasSuccessful());
+        Assertions.assertEquals(1, gameDAO.listGames().size());
     }
 
     @Test
     public void joinGameSuccess(){
-
+        gameDAO.addGame(DUMMY_GAME_NO_WHITE);
+        JoinGameRequest req = new JoinGameRequest(ChessGame.TeamColor.WHITE,DUMMY_GAME_NO_WHITE.gameID());
+        FailureOrResult<EmptyResult> res = gameService.joinGame(req,"bob");
+        Assertions.assertTrue(res.wasSuccessful());
+        Collection<GameData> games = gameDAO.listGames();
+        GameData game = games.stream().findFirst().orElseThrow();
+        Assertions.assertEquals("bob",game.whiteUsername());
     }
 
     @Test
     public void joinGameNoSuchGameFail(){
-
+        JoinGameRequest req = new JoinGameRequest(ChessGame.TeamColor.WHITE,DUMMY_GAME_NO_WHITE.gameID());
+        FailureOrResult<EmptyResult> res = gameService.joinGame(req,"bob");
+        Assertions.assertFalse(res.wasSuccessful());
     }
 
     @Test
     public void joinGameSpotTakenFail(){
-
+        gameDAO.addGame(DUMMY_GAME);
+        JoinGameRequest req = new JoinGameRequest(ChessGame.TeamColor.WHITE,DUMMY_GAME.gameID());
+        FailureOrResult<EmptyResult> res = gameService.joinGame(req,"bob");
+        Assertions.assertFalse(res.wasSuccessful());
+        Collection<GameData> games = gameDAO.listGames();
+        GameData game = games.stream().findFirst().orElseThrow();
+        Assertions.assertNotEquals("bob",game.whiteUsername());
     }
-
-
-
 
 }

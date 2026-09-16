@@ -14,24 +14,18 @@ import request.CreateGameRequest;
 import request.JoinGameRequest;
 import request.LoginRequest;
 import request.RegisterRequest;
-import result.CreateGameResult;
 import result.FailureOrResult;
-import result.FailureResult;
-import result.ListGamesResult;
 import service.AuthService;
 import service.ClearDatabaseService;
 import service.GameService;
 import service.UserService;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.util.Map;
 
 public class Server {
 
     private final Javalin javalin;
-    private Record r;
 
     public Server() {
 

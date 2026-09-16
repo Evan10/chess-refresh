@@ -2,6 +2,8 @@ package dataaccess;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Properties;
 
@@ -22,10 +24,16 @@ public class DatabaseManager {
      * Creates the database if it does not already exist.
      */
     static public void createDatabase() throws DataAccessException {
-        var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName;
-        try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
-             var preparedStatement = conn.prepareStatement(statement)) {
-            preparedStatement.executeUpdate();
+        String setupScript = loadSQLScriptFromResources("setup.sql");
+        setupScript = setupScript.replaceAll("\\$\\{database-name}",databaseName);
+        String[] commands = setupScript.split(";");
+
+        try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword)) {
+            for (String c : commands){
+                try(Statement statement = conn.createStatement()) {
+                    statement.execute(c);
+                }
+            }
         } catch (SQLException ex) {
             throw new DataAccessException("failed to create database", ex);
         }
@@ -75,5 +83,17 @@ public class DatabaseManager {
         var host = props.getProperty("db.host");
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
+    }
+
+    public static String loadSQLScriptFromResources(String sqlName){
+        String path = "sql/"+sqlName;
+        try(InputStream fileStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)){
+            if(fileStream == null){
+                throw new FileNotFoundException();
+            }
+            return new String(fileStream.readAllBytes(), StandardCharsets.UTF_8);
+        }catch (IOException e){
+            throw new RuntimeException("Unable to process file "+sqlName, e);
+        }
     }
 }

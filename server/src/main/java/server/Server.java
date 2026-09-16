@@ -1,10 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.AuthDAO;
-import dataaccess.DAOFactory;
-import dataaccess.GameDAO;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.ContentType;
 import io.javalin.http.Context;
@@ -28,6 +25,12 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
+
+        try {
+            DatabaseManager.createDatabase();
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error: unable to start server due to database connection error",e);
+        }
 
         DAOFactory factory = new DAOFactory(true);
         AuthDAO authDAO = factory.buildAuthDAO();

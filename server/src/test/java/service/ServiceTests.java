@@ -37,7 +37,7 @@ public class ServiceTests {
 
     @BeforeEach
     public void init(){
-        DAOFactory f = new DAOFactory(true);
+        DAOFactory f = new DAOFactory(DAOType.Memory);
         gameDAO = f.buildGameDAO();
         userDAO = f.buildUserDAO();
         authDAO = f.buildAuthDAO();

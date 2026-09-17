@@ -17,30 +17,40 @@ import service.ClearDatabaseService;
 import service.GameService;
 import service.UserService;
 
+import java.io.IOException;
 import java.lang.reflect.RecordComponent;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.logging.*;
 
 public class Server {
 
     private final Javalin javalin;
 
+    private Logger logger;
+
     public Server() {
+
+        configureLogger();
 
         try {
             DatabaseManager.createDatabase();
         } catch (DataAccessException e) {
             throw new RuntimeException("Error: unable to start server due to database connection error",e);
         }
+        logger.info("Database connection setup");
 
-        DAOFactory factory = new DAOFactory(true);
+        DAOFactory factory = new DAOFactory(DAOType.Database);
         AuthDAO authDAO = factory.buildAuthDAO();
         GameDAO gameDAO = factory.buildGameDAO();
         UserDAO userDAO = factory.buildUserDAO();
+        logger.info("DAOs setup");
 
         AuthService authService = new AuthService(authDAO);
         ClearDatabaseService clearDatabaseService = new ClearDatabaseService(authDAO,gameDAO,userDAO);
         GameService gameService = new GameService(gameDAO);
         UserService userService = new UserService(userDAO,authDAO);
+        logger.info("services setup");
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .before((ctx )->{
@@ -109,6 +119,7 @@ public class Server {
                     resolveServiceResult(ctx,clearDatabaseService.clearDatabase());
                 })
                 .exception(RuntimeException.class,(e, ctx) -> {
+                    logServerError(e);
                     ctx.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
                 })
                 .error(HttpStatus.BAD_REQUEST_400,(ctx)->{
@@ -119,6 +130,7 @@ public class Server {
                     ctx.contentType(ContentType.APPLICATION_JSON);
                     ctx.result(new Gson().toJson(Map.of("message","Error: internal server error")));
                 });
+        logger.info("API endpoints setup");
 
     }
 
@@ -171,6 +183,32 @@ public class Server {
             }
         }
         return true;
+        }
+
+
+
+
+
+        private void configureLogger(){
+            logger = Logger.getGlobal();
+            try {
+                FileHandler h = new FileHandler("log.log",true);
+                h.setFormatter(new SimpleFormatter());
+                logger.addHandler(h);
+                logger.setLevel(Level.INFO);
+                Runtime.getRuntime().addShutdownHook(new Thread(h::close));
+            } catch (IOException e) {
+                throw new RuntimeException("Error: unable to setup file handler for logging");
+            }
+        }
+
+        private void logServerError(Exception e){
+            StringBuilder sb = new StringBuilder(e.toString());
+            sb.append("\n");
+            Arrays.stream(e.getStackTrace())
+                    .limit(6)
+                    .forEach((t)-> sb.append(t.toString().indent(4)));
+            logger.warning(sb.toString());
         }
     }
 

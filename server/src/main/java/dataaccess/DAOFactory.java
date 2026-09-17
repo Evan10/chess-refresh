@@ -2,20 +2,21 @@ package dataaccess;
 
 public class DAOFactory {
 
-    boolean inMemory;
-    public DAOFactory(boolean inMemory){
-        this.inMemory = inMemory;
+    private final DAOType type;
+
+    public DAOFactory(DAOType type) {
+        this.type = type;
     }
 
-    public UserDAO buildUserDAO(){
-        return inMemory ? new MemoryUserDAO() : null;
+    public UserDAO buildUserDAO() {
+        return type == DAOType.Memory ? new MemoryUserDAO() : new SqlUserDAO();
     }
 
-    public GameDAO buildGameDAO(){
-        return inMemory ? new MemoryGameDAO() : null;
+    public GameDAO buildGameDAO() {
+        return type == DAOType.Memory ? new MemoryGameDAO() : new SqlGameDAO();
     }
 
-    public AuthDAO buildAuthDAO(){
-        return inMemory ? new MemoryAuthDAO() : null;
+    public AuthDAO buildAuthDAO() {
+        return type == DAOType.Memory ? new MemoryAuthDAO() : new SqlAuthDAO();
     }
 }

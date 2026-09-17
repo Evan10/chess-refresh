@@ -3,28 +3,29 @@ CREATE DATABASE IF NOT EXISTS ${database-name};
 USE ${database-name};
 
 CREATE TABLE IF NOT EXISTS users(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) PRIMARY KEY,
     password_h VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP()
 );
 
 CREATE TABLE IF NOT EXISTS games(
     game_id INT PRIMARY KEY,
-    white_id INT,
-    black_id INT,
+    white_username VARCHAR(255),
+    black_username VARCHAR(255),
     game_name VARCHAR(255) NOT NULL,
     game_data VARCHAR(10000) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
-    FOREIGN KEY (white_id) REFERENCES users(id),
-    FOREIGN KEY (black_id) REFERENCES users(id)
+    FOREIGN KEY (white_username) REFERENCES users(username),
+    FOREIGN KEY (black_username) REFERENCES users(username)
 );
 
 CREATE TABLE IF NOT EXISTS authentication(
-     user_id INT PRIMARY KEY,
-     auth_token VARCHAR(255) NOT NULL,
+    username VARCHAR(255) PRIMARY KEY,
+    auth_token VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP()
+    FOREIGN KEY (username) REFERENCES users(username)
 );

@@ -40,6 +40,8 @@ public class SqlAuthDAO implements AuthDAO{
                 rs.next();
                 return rs.getString("username");
             }
+        }catch(DataNotFoundException e){
+            throw(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -53,13 +55,9 @@ public class SqlAuthDAO implements AuthDAO{
                 """;
         try(Connection conn = getConnection()){
             try(PreparedStatement ps = conn.prepareStatement(sql)){
-                ps.setString(1,authData.);
-                if(!ps.execute()){
-                    throw new DataNotFoundException("Error: session not found");
-                }
-                ResultSet rs = ps.getResultSet();
-                rs.next();
-                return rs.getString("username");
+                ps.setString(1,authData.username());
+                ps.setString(2,authData.authToken());
+                ps.execute();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -68,7 +66,20 @@ public class SqlAuthDAO implements AuthDAO{
 
     @Override
     public void removeAuth(String authToken) throws DataNotFoundException {
-
+        String sql = """
+                DELETE FROM authentication
+                WHERE auth_token = ?
+                """;
+        try(Connection conn = getConnection()){
+            try(PreparedStatement ps = conn.prepareStatement(sql)){
+                ps.setString(1,authToken);
+                if(ps.executeUpdate()==0){
+                    throw new DataNotFoundException("Error: session not found");
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

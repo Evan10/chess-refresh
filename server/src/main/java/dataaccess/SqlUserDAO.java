@@ -32,14 +32,8 @@ public class SqlUserDAO implements UserDAO{
                 ps.setString(3,userData.email());
                 ps.execute();
             }
-        } catch (SQLException e) {
-            if(e.getSQLState().startsWith("23")){
-                throw new InUseException("Error: username in use");
-            }else{
-                throw new RuntimeException("Error: internal server error");
-            }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            SqlExceptionHandler.translateException(e);
         }
         return userData.username();
     }
@@ -63,7 +57,10 @@ public class SqlUserDAO implements UserDAO{
                 String email = rs.getString("email");
                 return new UserData(usernm,psh,email);
             }
-        }catch (SQLException | DataAccessException e) {
+        }catch (DataNotFoundException e){
+            throw(e);
+        }
+        catch (SQLException | DataAccessException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,15 +1,15 @@
 package dataaccess;
 
-import java.sql.SQLDataException;
+import java.sql.SQLException;
 
 public class SqlExceptionHandler {
 
-    public static void translateException(Exception ex) throws InUseException{
-        if(ex instanceof SQLDataException sqlex){
+    public static void translateException(Exception ex) throws DataAccessException{
+        if(ex instanceof SQLException sqlex){
             if(sqlex.getSQLState().startsWith("23")) {
                 throw new InUseException("Error: name in use");
             }
         }
-        throw new RuntimeException("Error: internal server error");
+        throw new DataAccessException("Error: internal server error",ex);
     }
 }

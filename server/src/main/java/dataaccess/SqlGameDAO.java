@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 
+import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,20 +25,20 @@ public class SqlGameDAO implements GameDAO{
     }
 
     @Override
-    public void clearGames() {
+    public void clearGames() throws DataAccessException{
         String sql = """
             DELETE FROM games""";
         try(Connection conn = getConnection()){
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.execute();
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: unable to access database",e);
         }
     }
 
     @Override
-    public void addGame(GameData gameData) {
+    public void addGame(GameData gameData) throws DataAccessException {
         String sql = """
                 INSERT INTO games (game_id,game_name,white_username,black_username,game_data)
                 VALUES (?,?,?,?,?)
@@ -52,8 +53,8 @@ public class SqlGameDAO implements GameDAO{
                 ps.setString(5,game);
                 ps.execute();
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Error: database exception");
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: database exception");
         }
 
     }
@@ -93,11 +94,11 @@ public class SqlGameDAO implements GameDAO{
         try( Connection conn = getConnection()){
             try( PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.setInt(1,gameID);
-                if(!ps.execute()){
+                ps.execute();
+                ResultSet rs = ps.getResultSet();
+                if(!rs.next()){
                     throw new DataNotFoundException("Error: unable to find game with given id");
                 }
-                ResultSet rs = ps.getResultSet();
-                rs.next();
                 ChessGame game = gameSerializer.fromJson(rs.getString("game_data"),ChessGame.class);
                 return new GameData(gameID, rs.getString("white_username"),
                         rs.getString("black_username"), rs.getString("game_name"), game);
@@ -127,13 +128,13 @@ public class SqlGameDAO implements GameDAO{
                 }
                 return games;
             }
-        } catch (RuntimeException | SQLException e) {
+        } catch (SQLException e) {
             throw new DataAccessException("Error: unable to access database",e);
         }
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty() throws DataAccessException{
         String sql = """
             SELECT CASE
                 WHEN EXISTS(SELECT 1 FROM games) THEN 0
@@ -148,8 +149,8 @@ public class SqlGameDAO implements GameDAO{
                 }
                 return rs.getBoolean("IsEmpty");
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: unable to access database",e);
         }
     }
 

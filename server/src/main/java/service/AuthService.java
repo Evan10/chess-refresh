@@ -14,11 +14,11 @@ public class AuthService {
         this.authDAO = authDAO;
     }
 
-    public AuthData authenticate(String authToken){
+    public AuthData authenticate(String authToken) throws DataAccessException{
         try {
             String username = authDAO.getUsername(authToken);
             return new AuthData(authToken,username);
-        } catch (DataAccessException e) {
+        } catch (DataNotFoundException e) {
             return null;
         }
     }

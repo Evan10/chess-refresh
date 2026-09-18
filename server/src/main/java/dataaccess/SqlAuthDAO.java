@@ -2,30 +2,27 @@ package dataaccess;
 
 import model.AuthData;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 
 import static dataaccess.DatabaseManager.getConnection;
 
 
 public class SqlAuthDAO implements AuthDAO{
     @Override
-    public void clearAuth() {
+    public void clearAuth() throws DataAccessException {
         String sql = """
             DELETE FROM authentication""";
         try(Connection conn = getConnection()){
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.execute();
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        }catch (SQLException e) {
+            throw new DataAccessException("Error:internal server error",e);
         }
     }
 
     @Override
-    public String getUsername(String authToken) throws DataNotFoundException {
+    public String getUsername(String authToken) throws DataAccessException {
         String sql = """
                 SELECT username FROM authentication
                 WHERE auth_token = ?
@@ -33,22 +30,20 @@ public class SqlAuthDAO implements AuthDAO{
         try(Connection conn = getConnection()){
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.setString(1,authToken);
-                if(!ps.execute()){
+                ps.execute();
+                ResultSet rs = ps.getResultSet();
+                if(!rs.next()){
                     throw new DataNotFoundException("Error: session not found");
                 }
-                ResultSet rs = ps.getResultSet();
-                rs.next();
                 return rs.getString("username");
             }
-        }catch(DataNotFoundException e){
-            throw(e);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: internal server error",e);
         }
     }
 
     @Override
-    public void addAuth(AuthData authData) {
+    public void addAuth(AuthData authData) throws DataAccessException{
         String sql = """
                 INSERT INTO authentication (username,auth_token)
                 VALUES (?,?)
@@ -59,13 +54,13 @@ public class SqlAuthDAO implements AuthDAO{
                 ps.setString(2,authData.authToken());
                 ps.execute();
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error:internal server error",e);
         }
     }
 
     @Override
-    public void removeAuth(String authToken) throws DataNotFoundException {
+    public void removeAuth(String authToken) throws DataAccessException {
         String sql = """
                 DELETE FROM authentication
                 WHERE auth_token = ?
@@ -77,13 +72,13 @@ public class SqlAuthDAO implements AuthDAO{
                     throw new DataNotFoundException("Error: session not found");
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: internal server error",e);
         }
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty() throws DataAccessException{
         String sql = """
             SELECT CASE
                 WHEN EXISTS(SELECT 1 FROM authentication) THEN 0
@@ -98,8 +93,8 @@ public class SqlAuthDAO implements AuthDAO{
                 }
                 return rs.getBoolean("IsEmpty");
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error:internal server error",e);
         }
     }
 }

@@ -3,6 +3,7 @@ package service;
 import dataaccess.*;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.*;
@@ -17,7 +18,8 @@ public class UserService {
     }
 
     public FailureOrResult<RegisterResult> registerUser(RegisterRequest req){
-        UserData userData = new UserData(req.username(),req.password(),req.email());
+        String password_h = BCrypt.hashpw(req.password(),BCrypt.gensalt());
+        UserData userData = new UserData(req.username(),password_h,req.email());
         try {
             userDAO.addUser(userData);
             AuthData authData = addAuth(req.username());
@@ -32,12 +34,12 @@ public class UserService {
     public FailureOrResult<LoginResult> login(LoginRequest req){
         try {
             UserData userData = userDAO.getUser(req.username());
-            if(!userData.password().equals(req.password())){
+            if(!BCrypt.checkpw(req.password(),userData.password())){
                 return new FailureOrResult<>(new FailureResult(401,"Error: unauthorized"));
             }
             AuthData authData = addAuth(req.username());
             return new FailureOrResult<>(new LoginResult(authData.username(),authData.authToken()));
-        } catch (InUseException e) {
+        } catch (InUseException | DataNotFoundException e) {
             return new FailureOrResult<>(new FailureResult(401, "Error: unauthorized"));
         } catch (DataAccessException e){
             return new FailureOrResult<>(new FailureResult(500, "Error: internal server error"));

@@ -77,7 +77,7 @@ public class ServiceTests {
         Assertions.assertNotNull(res);
     }
 
-    @Test void authenticateIsNullFail(){
+    @Test void authenticateIsNullFail() throws DataAccessException {
         AuthData res = authService.authenticate(DUMMY_AUTH.authToken());
         Assertions.assertNull(res);
     }

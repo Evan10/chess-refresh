@@ -8,20 +8,20 @@ import static dataaccess.DatabaseManager.getConnection;
 
 public class SqlUserDAO implements UserDAO{
     @Override
-    public void clearUsers() {
+    public void clearUsers() throws DataAccessException{
         String sql = """
             DELETE FROM users""";
         try(Connection conn = getConnection()){
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.execute();
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: internal server error",e);
         }
     }
 
     @Override
-    public String addUser(UserData userData) throws InUseException {
+    public String addUser(UserData userData) throws DataAccessException {
         String sql = """
             INSERT INTO users(username, password_h,email)
             VALUES (?,?,?)""";
@@ -39,7 +39,7 @@ public class SqlUserDAO implements UserDAO{
     }
 
     @Override
-    public UserData getUser(String username) throws DataNotFoundException {
+    public UserData getUser(String username) throws DataAccessException {
         String sql = """
                 SELECT username, password_h, email FROM users
                 WHERE username = ?
@@ -47,26 +47,23 @@ public class SqlUserDAO implements UserDAO{
         try(Connection conn = DatabaseManager.getConnection()){
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.setString(1,username);
-                if(!ps.execute()){
+                ps.execute();
+                ResultSet rs = ps.getResultSet();
+                if(!rs.next()){
                     throw new DataNotFoundException("Error: user with username not found");
                 }
-                ResultSet rs = ps.getResultSet();
-                rs.next();
                 String usernm = rs.getString("username");
                 String psh = rs.getString("password_h");
                 String email = rs.getString("email");
                 return new UserData(usernm,psh,email);
             }
-        }catch (DataNotFoundException e){
-            throw(e);
-        }
-        catch (SQLException | DataAccessException e) {
-            throw new RuntimeException(e);
+        }catch (SQLException e) {
+            throw new DataAccessException("Error: internal server error",e);
         }
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty() throws DataAccessException{
         String sql = """
             SELECT CASE
                 WHEN EXISTS(SELECT 1 FROM users) THEN 0
@@ -76,13 +73,13 @@ public class SqlUserDAO implements UserDAO{
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.execute();
                 ResultSet rs = ps.getResultSet();
-                if (rs == null) {
-                    throw new RuntimeException("Invalid SQL query response");
+                if (rs == null || !rs.next()) {
+                    throw new DataAccessException("Invalid SQL query response");
                 }
                 return rs.getBoolean("IsEmpty");
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error: internal server error",e);
         }
     }
 }

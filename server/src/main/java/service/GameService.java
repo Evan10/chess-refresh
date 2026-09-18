@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.DataAccessException;
 import dataaccess.DataNotFoundException;
 import dataaccess.GameDAO;
 import dataaccess.InUseException;
@@ -20,14 +21,22 @@ public class GameService {
     }
 
     public FailureOrResult<ListGamesResult> getGames(){
-        Collection<GameData> games = gameDAO.listGames();
-        return new FailureOrResult<>(new ListGamesResult(games));
+        try {
+            Collection<GameData> games = gameDAO.listGames();
+            return new FailureOrResult<>(new ListGamesResult(games));
+        } catch (DataAccessException e) {
+            return new FailureOrResult<>(new FailureResult(500, "Error: internal server error"));
+        }
     }
 
     public FailureOrResult<CreateGameResult> createGame(CreateGameRequest req){
         int id = gameDAO.nextID();
         GameData newGame = new GameData(id,null,null,req.gameName(),new ChessGame());
-        gameDAO.addGame(newGame);
+        try {
+            gameDAO.addGame(newGame);
+        } catch (DataAccessException e) {
+            return new FailureOrResult<>(new FailureResult(500, "Error: internal server error"));
+        }
         return new FailureOrResult<>(new CreateGameResult(id));
     }
 
@@ -40,6 +49,8 @@ public class GameService {
             return new FailureOrResult<>(new FailureResult(403, "Error: player position already in use"));
         } catch (DataNotFoundException e) {
             return new FailureOrResult<>(new FailureResult(400, "Error: bad request"));
+        } catch (DataAccessException e) {
+            return new FailureOrResult<>(new FailureResult(500, "Error: internal server error"));
         }
 
     }

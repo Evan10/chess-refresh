@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.AuthDAO;
-import dataaccess.DataNotFoundException;
-import dataaccess.InUseException;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import request.LoginRequest;
@@ -23,11 +20,13 @@ public class UserService {
         UserData userData = new UserData(req.username(),req.password(),req.email());
         try {
             userDAO.addUser(userData);
+            AuthData authData = addAuth(req.username());
+            return new FailureOrResult<>(new RegisterResult(authData.username(),authData.authToken()));
         } catch (InUseException e) {
             return new FailureOrResult<>(new FailureResult(403, "Error: already taken"));
+        } catch (DataAccessException e) {
+            return new FailureOrResult<>(new FailureResult(500, "Error: internal server error"));
         }
-        AuthData authData = addAuth(req.username());
-        return new FailureOrResult<>(new RegisterResult(authData.username(),authData.authToken()));
     }
 
     public FailureOrResult<LoginResult> login(LoginRequest req){
@@ -38,8 +37,10 @@ public class UserService {
             }
             AuthData authData = addAuth(req.username());
             return new FailureOrResult<>(new LoginResult(authData.username(),authData.authToken()));
-        } catch (DataNotFoundException e) {
+        } catch (InUseException e) {
             return new FailureOrResult<>(new FailureResult(401, "Error: unauthorized"));
+        } catch (DataAccessException e){
+            return new FailureOrResult<>(new FailureResult(500, "Error: internal server error"));
         }
     }
 
@@ -49,10 +50,12 @@ public class UserService {
             return new FailureOrResult<>(new EmptyResult());
         } catch (DataNotFoundException e) {
             return new FailureOrResult<>(new FailureResult(401, "Error: unauthorized"));
+        } catch (DataAccessException e) {
+            return new FailureOrResult<>(new FailureResult(500, "Error: internal server error"));
         }
     }
 
-    private AuthData addAuth(String username){
+    private AuthData addAuth(String username) throws DataAccessException {
         String authToken = UUIDGenerator.generateUUID();
         AuthData authData = new AuthData(authToken,username);
         authDAO.addAuth(authData);

@@ -7,13 +7,13 @@ import java.util.Collection;
 
 public interface GameDAO {
 
-    void clearGames();
+    void clearGames() throws DataAccessException;
 
-    void addGame(GameData gameData);
-    void joinGame(ChessGame.TeamColor playerColor, String username, int gameID) throws InUseException,DataNotFoundException;
-    Collection<GameData> listGames();
+    void addGame(GameData gameData) throws DataAccessException;
+    void joinGame(ChessGame.TeamColor playerColor, String username, int gameID) throws DataAccessException;
+    Collection<GameData> listGames() throws DataAccessException;
 
-    boolean isEmpty();
+    boolean isEmpty() throws DataAccessException;
 
     int nextID();
 }

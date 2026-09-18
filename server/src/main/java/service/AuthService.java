@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.AuthDAO;
-import dataaccess.DataNotFoundException;
-import dataaccess.GameDAO;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import io.javalin.http.Context;
 import model.AuthData;
 
@@ -11,7 +8,7 @@ import java.util.HashMap;
 
 public class AuthService {
 
-    private AuthDAO authDAO;
+    private final AuthDAO authDAO;
 
     public AuthService(AuthDAO authDAO){
         this.authDAO = authDAO;
@@ -21,9 +18,9 @@ public class AuthService {
         try {
             String username = authDAO.getUsername(authToken);
             return new AuthData(authToken,username);
-        } catch (DataNotFoundException e) {
+        } catch (DataAccessException e) {
             return null;
         }
-        }
+    }
     
 }

@@ -49,7 +49,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void clearDatabaseSuccess(){
+    public void clearDatabaseSuccess() throws DataAccessException {
         Assertions.assertTrue(gameDAO.isEmpty()); // verify empty at start
         Assertions.assertTrue(userDAO.isEmpty());
         Assertions.assertTrue(authDAO.isEmpty());
@@ -71,7 +71,7 @@ public class ServiceTests {
         Assertions.assertTrue(authDAO.isEmpty());
     }
 
-    @Test void authenticateSuccess(){
+    @Test void authenticateSuccess() throws DataAccessException {
         authDAO.addAuth(DUMMY_AUTH);
         AuthData res = authService.authenticate(DUMMY_AUTH.authToken());
         Assertions.assertNotNull(res);
@@ -83,7 +83,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void registerUserTestSuccess(){
+    public void registerUserTestSuccess() throws DataAccessException {
         Assertions.assertTrue(userDAO.isEmpty());
         RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
         FailureOrResult<RegisterResult> res = userService.registerUser(req);
@@ -104,7 +104,11 @@ public class ServiceTests {
     public void loginUserTestSuccess(){
         RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
         userService.registerUser(req);
-        authDAO.clearAuth();
+        try {
+            authDAO.clearAuth();
+        } catch (DataAccessException e) {
+            Assertions.fail(e);
+        }
 
         LoginRequest lreq = new LoginRequest(DUMMY_USER.username(),DUMMY_USER.password());
         FailureOrResult<LoginResult> lres = userService.login(lreq);
@@ -114,11 +118,10 @@ public class ServiceTests {
     }
 
     @Test
-    public void loginUserWrongPasswordFail(){
+    public void loginUserWrongPasswordFail() throws DataAccessException {
         RegisterRequest req = new RegisterRequest(DUMMY_USER.username(),DUMMY_USER.password(),DUMMY_USER.email());
         userService.registerUser(req);
         authDAO.clearAuth();
-
         LoginRequest lreq = new LoginRequest(DUMMY_USER.username(),"wrongPassword");
         FailureOrResult<LoginResult> lres = userService.login(lreq);
         Assertions.assertFalse(lres.wasSuccessful());
@@ -154,7 +157,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void getGamesSuccess(){
+    public void getGamesSuccess() throws DataAccessException {
         gameDAO.addGame(DUMMY_GAME);
         FailureOrResult<ListGamesResult> res = gameService.getGames();
         Assertions.assertTrue(res.wasSuccessful());
@@ -163,7 +166,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void createGameSuccess(){
+    public void createGameSuccess() throws DataAccessException {
         CreateGameRequest req = new CreateGameRequest("Game");
         FailureOrResult<CreateGameResult> res = gameService.createGame(req);
         Assertions.assertTrue(res.wasSuccessful());
@@ -171,7 +174,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void joinGameSuccess(){
+    public void joinGameSuccess() throws DataAccessException {
         gameDAO.addGame(DUMMY_GAME_NO_WHITE);
         JoinGameRequest req = new JoinGameRequest(ChessGame.TeamColor.WHITE,DUMMY_GAME_NO_WHITE.gameID());
         FailureOrResult<EmptyResult> res = gameService.joinGame(req,"bob");
@@ -189,7 +192,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void joinGameSpotTakenFail(){
+    public void joinGameSpotTakenFail() throws DataAccessException {
         gameDAO.addGame(DUMMY_GAME);
         JoinGameRequest req = new JoinGameRequest(ChessGame.TeamColor.WHITE,DUMMY_GAME.gameID());
         FailureOrResult<EmptyResult> res = gameService.joinGame(req,"bob");

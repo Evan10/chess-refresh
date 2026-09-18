@@ -5,12 +5,12 @@ import model.UserData;
 
 public interface AuthDAO {
 
-    void clearAuth();
+    void clearAuth() throws DataAccessException;
 
-    String getUsername(String authToken) throws DataNotFoundException;
-    void addAuth(AuthData authData);
-    void removeAuth(String authToken) throws DataNotFoundException;
+    String getUsername(String authToken) throws DataAccessException;
+    void addAuth(AuthData authData) throws DataAccessException;
+    void removeAuth(String authToken) throws DataAccessException;
 
 
-    boolean isEmpty();
+    boolean isEmpty() throws DataAccessException;
 }

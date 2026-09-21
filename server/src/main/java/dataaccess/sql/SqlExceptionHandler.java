@@ -1,10 +1,13 @@
-package dataaccess;
+package dataaccess.sql;
+
+import dataaccess.DataAccessException;
+import dataaccess.InUseException;
 
 import java.sql.SQLException;
 
 public class SqlExceptionHandler {
 
-    public static void translateException(Exception ex) throws DataAccessException{
+    public static void translateException(Exception ex) throws DataAccessException {
         if(ex instanceof SQLException sqlex){
             if(sqlex.getSQLState().startsWith("23")) {
                 throw new InUseException("Error: name in use");

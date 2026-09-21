@@ -1,31 +1,32 @@
-package dataaccess;
+package dataaccess.sql;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
+import dataaccess.DataNotFoundException;
+import dataaccess.GameDAO;
+import dataaccess.InUseException;
 import model.GameData;
 
-import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import static chess.ChessGame.TeamColor.BLACK;
 import static chess.ChessGame.TeamColor.WHITE;
-import static dataaccess.DatabaseManager.getConnection;
+import static dataaccess.sql.DatabaseManager.getConnection;
 
-public class SqlGameDAO implements GameDAO{
+public class SqlGameDAO implements GameDAO {
 
     private int id = 1;
     private static final Gson gameSerializer = new Gson();
-    SqlGameDAO(){
+    public SqlGameDAO(){
     }
 
     @Override
-    public void clearGames() throws DataAccessException{
+    public void clearGames() throws DataAccessException {
         String sql = """
             DELETE FROM games""";
         try(Connection conn = getConnection()){
@@ -144,9 +145,7 @@ public class SqlGameDAO implements GameDAO{
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.execute();
                 ResultSet rs = ps.getResultSet();
-                if (rs == null) {
-                    throw new RuntimeException("Invalid SQL query response");
-                }
+                rs.next();
                 return rs.getBoolean("IsEmpty");
             }
         } catch (SQLException e) {

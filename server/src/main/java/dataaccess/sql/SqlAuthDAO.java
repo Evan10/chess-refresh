@@ -1,13 +1,19 @@
-package dataaccess;
+package dataaccess.sql;
 
+import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
+import dataaccess.DataNotFoundException;
 import model.AuthData;
 
 import java.sql.*;
 
-import static dataaccess.DatabaseManager.getConnection;
+import static dataaccess.sql.DatabaseManager.getConnection;
 
 
-public class SqlAuthDAO implements AuthDAO{
+public class SqlAuthDAO implements AuthDAO {
+
+    public SqlAuthDAO(){}
+
     @Override
     public void clearAuth() throws DataAccessException {
         String sql = """
@@ -88,9 +94,7 @@ public class SqlAuthDAO implements AuthDAO{
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.execute();
                 ResultSet rs = ps.getResultSet();
-                if (rs == null) {
-                    throw new RuntimeException("Invalid SQL query response");
-                }
+                rs.next();
                 return rs.getBoolean("IsEmpty");
             }
         } catch (SQLException e) {

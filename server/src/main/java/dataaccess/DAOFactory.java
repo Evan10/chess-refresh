@@ -1,5 +1,9 @@
 package dataaccess;
 
+import dataaccess.sql.SqlAuthDAO;
+import dataaccess.sql.SqlGameDAO;
+import dataaccess.sql.SqlUserDAO;
+
 public class DAOFactory {
 
     private final DAOType type;

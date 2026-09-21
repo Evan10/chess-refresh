@@ -1,14 +1,19 @@
-package dataaccess;
+package dataaccess.sql;
 
+import dataaccess.DataAccessException;
+import dataaccess.DataNotFoundException;
+import dataaccess.UserDAO;
 import model.UserData;
 
 import java.sql.*;
 
-import static dataaccess.DatabaseManager.getConnection;
+import static dataaccess.sql.DatabaseManager.getConnection;
 
-public class SqlUserDAO implements UserDAO{
+public class SqlUserDAO implements UserDAO {
+    public SqlUserDAO(){};
+
     @Override
-    public void clearUsers() throws DataAccessException{
+    public void clearUsers() throws DataAccessException {
         String sql = """
             DELETE FROM users""";
         try(Connection conn = getConnection()){
@@ -73,9 +78,7 @@ public class SqlUserDAO implements UserDAO{
             try(PreparedStatement ps = conn.prepareStatement(sql)){
                 ps.execute();
                 ResultSet rs = ps.getResultSet();
-                if (rs == null || !rs.next()) {
-                    throw new DataAccessException("Invalid SQL query response");
-                }
+                rs.next();
                 return rs.getBoolean("IsEmpty");
             }
         } catch (SQLException e) {

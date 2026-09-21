@@ -1,9 +1,12 @@
 package dataaccess;
 
-import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import dataaccess.sql.DatabaseManager;
+import dataaccess.sql.SqlAuthDAO;
+import dataaccess.sql.SqlGameDAO;
+import dataaccess.sql.SqlUserDAO;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -26,7 +29,8 @@ public class DAOTests{
     static GameData game = new GameData(1,null,null,"Game",new ChessGame());
 
     @BeforeAll
-    static void init(){
+    static void init() throws DataAccessException {
+        DatabaseManager.createDatabase();
         DAOFactory factory = new DAOFactory(DAOType.Database);
         authDAO = (SqlAuthDAO) factory.buildAuthDAO();
         gameDAO = (SqlGameDAO) factory.buildGameDAO();
@@ -38,51 +42,59 @@ public class DAOTests{
         authDAO.clearAuth();
         gameDAO.clearGames();
         userDAO.clearUsers();
-        game = new GameData(1,null,null,"Game",new ChessGame());
+
+        game = new GameData(gameDAO.nextID(),null,null,"Game",new ChessGame());
     }
 
 
     @Test
-    void SqlCreateUserSuccess(){
+    void SqlCreateUserSuccess() throws DataAccessException {
         Assertions.assertDoesNotThrow(()->userDAO.addUser(user));
+        Assertions.assertFalse(userDAO.isEmpty());
     }
 
     @Test
-    void SqlCreateUserUsernameInUse(){
+    void SqlCreateUserUsernameInUse() throws DataAccessException {
         Assertions.assertDoesNotThrow(()->userDAO.addUser(user));
         Assertions.assertThrows(InUseException.class,()->userDAO.addUser(user));
+        Assertions.assertFalse(userDAO.isEmpty());
     }
 
     @Test
-    void SqlLoginSuccess(){
+    void SqlLoginSuccess() throws DataAccessException {
         Assertions.assertDoesNotThrow(()->authDAO.addAuth(auth));
         Assertions.assertDoesNotThrow(()->{
             String retrieved = authDAO.getUsername(auth.authToken());
             Assertions.assertEquals(auth.username(),retrieved);
         });
+        Assertions.assertFalse(authDAO.isEmpty());
     }
 
     @Test
-    void SqlLogoutSuccess(){
+    void SqlLogoutSuccess() throws DataAccessException {
         Assertions.assertDoesNotThrow(()->authDAO.addAuth(auth));
         Assertions.assertDoesNotThrow(()->authDAO.removeAuth(auth.authToken()));
         Assertions.assertThrows(DataAccessException.class,()->authDAO.getUsername(auth.authToken()));
+        Assertions.assertTrue(authDAO.isEmpty());
     }
 
     @Test
-    void SqlLogoutNotLoggedIn(){
+    void SqlLogoutNotLoggedIn() throws DataAccessException {
         Assertions.assertThrows(DataNotFoundException.class,()->authDAO.removeAuth(auth.authToken()));
+        Assertions.assertTrue(authDAO.isEmpty());
     }
 
     @Test
-    void SqlCreateGameSuccess(){
+    void SqlCreateGameSuccess() throws DataAccessException {
         Assertions.assertDoesNotThrow(()->gameDAO.addGame(game));
+        Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
     void SqlCreateGameIDInUse() throws DataAccessException {
         gameDAO.addGame(game);
         Assertions.assertThrows(DataAccessException.class,()->gameDAO.addGame(game));
+        Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
@@ -90,6 +102,7 @@ public class DAOTests{
         gameDAO.addGame(game);
         Collection<GameData> games = gameDAO.listGames();
         Assertions.assertTrue(games.contains(game));
+        Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
@@ -101,6 +114,7 @@ public class DAOTests{
         games.stream().filter((g)->g.gameID()==game.gameID()).findFirst().ifPresent((gameData)->{
             Assertions.assertEquals(user.username(),gameData.blackUsername());
         });
+        Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
@@ -110,7 +124,7 @@ public class DAOTests{
         gameDAO.joinGame(ChessGame.TeamColor.BLACK,user.username(),game.gameID());
         Assertions.assertThrows(InUseException.class,
                 ()->gameDAO.joinGame(ChessGame.TeamColor.BLACK,user.username(),game.gameID()));
-
+        Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
@@ -123,6 +137,7 @@ public class DAOTests{
             GameData returnedGame = gameDAO.listGames().stream().findFirst().get();
             Assertions.assertEquals(gameData,returnedGame);
         });
+        Assertions.assertFalse(gameDAO.isEmpty());
     }
 
 

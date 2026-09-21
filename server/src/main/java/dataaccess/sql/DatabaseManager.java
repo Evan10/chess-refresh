@@ -1,6 +1,6 @@
-package dataaccess;
+package dataaccess.sql;
 
-import org.mindrot.jbcrypt.BCrypt;
+import dataaccess.DataAccessException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

@@ -31,28 +31,23 @@ public class Server {
     private Logger logger;
 
     public Server() {
-
         configureLogger();
-
         try {
             DatabaseManager.createDatabase();
         } catch (DataAccessException e) {
             throw new RuntimeException("Error: unable to start server due to database connection error",e);
         }
         logger.info("Database connection setup");
-
-        DAOFactory factory = new DAOFactory(DAOType.Database);
+        DAOFactory factory = new DAOFactory(DAOFactory.DAOType.Database);
         AuthDAO authDAO = factory.buildAuthDAO();
         GameDAO gameDAO = factory.buildGameDAO();
         UserDAO userDAO = factory.buildUserDAO();
         logger.info("DAOs setup");
-
         AuthService authService = new AuthService(authDAO);
         ClearDatabaseService clearDatabaseService = new ClearDatabaseService(authDAO,gameDAO,userDAO);
         GameService gameService = new GameService(gameDAO);
         UserService userService = new UserService(userDAO,authDAO);
         logger.info("services setup");
-
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .before((ctx )->{
                     AuthData authData = authService.authenticate(ctx.header("authorization"));

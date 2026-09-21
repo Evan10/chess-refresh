@@ -6,6 +6,12 @@ import dataaccess.sql.SqlUserDAO;
 
 public class DAOFactory {
 
+    public enum DAOType {
+        Memory,
+        Database
+    }
+
+
     private final DAOType type;
 
     public DAOFactory(DAOType type) {

@@ -21,7 +21,7 @@ import static dataaccess.sql.DatabaseManager.getConnection;
 public class SqlGameDAO implements GameDAO {
 
     private int id = 1;
-    private static final Gson gameSerializer = new Gson();
+    private static final Gson GAME_SERIALIZER = new Gson();
     public SqlGameDAO(){
     }
 
@@ -50,7 +50,7 @@ public class SqlGameDAO implements GameDAO {
                 ps.setString(2,gameData.gameName());
                 ps.setString(3,gameData.whiteUsername());
                 ps.setString(4,gameData.blackUsername());
-                String game = gameSerializer.toJson(gameData.game());
+                String game = GAME_SERIALIZER.toJson(gameData.game());
                 ps.setString(5,game);
                 ps.execute();
             }
@@ -65,8 +65,8 @@ public class SqlGameDAO implements GameDAO {
 
         GameData gameData = getGame(gameID);
         switch (playerColor){
-            case WHITE -> {if(gameData.whiteUsername() != null) throw new InUseException("Error: player color in use");}
-            case BLACK -> {if(gameData.blackUsername() != null) throw new InUseException("Error: player color in use");}
+            case WHITE -> {if(gameData.whiteUsername() != null) {throw new InUseException("Error: player color in use");}}
+            case BLACK -> {if(gameData.blackUsername() != null) {throw new InUseException("Error: player color in use");}}
         }
 
         String sql = """
@@ -100,7 +100,7 @@ public class SqlGameDAO implements GameDAO {
                 if(!rs.next()){
                     throw new DataNotFoundException("Error: unable to find game with given id");
                 }
-                ChessGame game = gameSerializer.fromJson(rs.getString("game_data"),ChessGame.class);
+                ChessGame game = GAME_SERIALIZER.fromJson(rs.getString("game_data"),ChessGame.class);
                 return new GameData(gameID, rs.getString("white_username"),
                         rs.getString("black_username"), rs.getString("game_name"), game);
             }
@@ -123,7 +123,7 @@ public class SqlGameDAO implements GameDAO {
                 ResultSet rs = ps.getResultSet();
                 ArrayList<GameData> games = new ArrayList<>();
                 while (rs.next()) {
-                    ChessGame game = gameSerializer.fromJson(rs.getString("game_data"), ChessGame.class);
+                    ChessGame game = GAME_SERIALIZER.fromJson(rs.getString("game_data"), ChessGame.class);
                     games.add(new GameData(rs.getInt("game_id"), rs.getString("white_username"),
                             rs.getString("black_username"), rs.getString("game_name"), game));
                 }

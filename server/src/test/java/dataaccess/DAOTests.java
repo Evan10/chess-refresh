@@ -24,14 +24,14 @@ public class DAOTests{
     private static SqlGameDAO gameDAO;
     private static SqlUserDAO userDAO;
 
-    final static UserData user = new UserData("Bob","B0b","bob@gmail.com");
-    final static AuthData auth = new AuthData("AuthToken","Username");
+    final static UserData USER = new UserData("Bob","B0b","bob@gmail.com");
+    final static AuthData AUTH = new AuthData("AuthToken","Username");
     static GameData game = new GameData(1,null,null,"Game",new ChessGame());
 
     @BeforeAll
     static void init() throws DataAccessException {
         DatabaseManager.createDatabase();
-        DAOFactory factory = new DAOFactory(DAOType.Database);
+        DAOFactory factory = new DAOFactory(DAOFactory.DAOType.Database);
         authDAO = (SqlAuthDAO) factory.buildAuthDAO();
         gameDAO = (SqlGameDAO) factory.buildGameDAO();
         userDAO = (SqlUserDAO)  factory.buildUserDAO();
@@ -48,57 +48,60 @@ public class DAOTests{
 
 
     @Test
-    void SqlCreateUserSuccess() throws DataAccessException {
-        Assertions.assertDoesNotThrow(()->userDAO.addUser(user));
+    void sqlCreateUserSuccess() throws DataAccessException {
+        Assertions.assertDoesNotThrow(()->userDAO.addUser(USER));
         Assertions.assertFalse(userDAO.isEmpty());
-    }
-
-    @Test
-    void SqlCreateUserUsernameInUse() throws DataAccessException {
-        Assertions.assertDoesNotThrow(()->userDAO.addUser(user));
-        Assertions.assertThrows(InUseException.class,()->userDAO.addUser(user));
-        Assertions.assertFalse(userDAO.isEmpty());
-    }
-
-    @Test
-    void SqlLoginSuccess() throws DataAccessException {
-        Assertions.assertDoesNotThrow(()->authDAO.addAuth(auth));
         Assertions.assertDoesNotThrow(()->{
-            String retrieved = authDAO.getUsername(auth.authToken());
-            Assertions.assertEquals(auth.username(),retrieved);
+            Assertions.assertEquals(USER,userDAO.getUser(USER.username()));
+        });
+    }
+
+    @Test
+    void sqlCreateUserUsernameInUse() throws DataAccessException {
+        Assertions.assertDoesNotThrow(()->userDAO.addUser(USER));
+        Assertions.assertThrows(InUseException.class,()->userDAO.addUser(USER));
+        Assertions.assertFalse(userDAO.isEmpty());
+    }
+
+    @Test
+    void sqlLoginSuccess() throws DataAccessException {
+        Assertions.assertDoesNotThrow(()->authDAO.addAuth(AUTH));
+        Assertions.assertDoesNotThrow(()->{
+            String retrieved = authDAO.getUsername(AUTH.authToken());
+            Assertions.assertEquals(AUTH.username(),retrieved);
         });
         Assertions.assertFalse(authDAO.isEmpty());
     }
 
     @Test
-    void SqlLogoutSuccess() throws DataAccessException {
-        Assertions.assertDoesNotThrow(()->authDAO.addAuth(auth));
-        Assertions.assertDoesNotThrow(()->authDAO.removeAuth(auth.authToken()));
-        Assertions.assertThrows(DataAccessException.class,()->authDAO.getUsername(auth.authToken()));
+    void sqlLogoutSuccess() throws DataAccessException {
+        Assertions.assertDoesNotThrow(()->authDAO.addAuth(AUTH));
+        Assertions.assertDoesNotThrow(()->authDAO.removeAuth(AUTH.authToken()));
+        Assertions.assertThrows(DataAccessException.class,()->authDAO.getUsername(AUTH.authToken()));
         Assertions.assertTrue(authDAO.isEmpty());
     }
 
     @Test
-    void SqlLogoutNotLoggedIn() throws DataAccessException {
-        Assertions.assertThrows(DataNotFoundException.class,()->authDAO.removeAuth(auth.authToken()));
+    void sqlLogoutNotLoggedIn() throws DataAccessException {
+        Assertions.assertThrows(DataNotFoundException.class,()->authDAO.removeAuth(AUTH.authToken()));
         Assertions.assertTrue(authDAO.isEmpty());
     }
 
     @Test
-    void SqlCreateGameSuccess() throws DataAccessException {
+    void sqlCreateGameSuccess() throws DataAccessException {
         Assertions.assertDoesNotThrow(()->gameDAO.addGame(game));
         Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
-    void SqlCreateGameIDInUse() throws DataAccessException {
+    void sqlCreateGameIDInUse() throws DataAccessException {
         gameDAO.addGame(game);
         Assertions.assertThrows(DataAccessException.class,()->gameDAO.addGame(game));
         Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
-    void SqlListGames() throws DataAccessException {
+    void sqlListGames() throws DataAccessException {
         gameDAO.addGame(game);
         Collection<GameData> games = gameDAO.listGames();
         Assertions.assertTrue(games.contains(game));
@@ -106,30 +109,30 @@ public class DAOTests{
     }
 
     @Test
-    void SqlJoinGameSuccess() throws DataAccessException {
-        userDAO.addUser(user);
+    void sqlJoinGameSuccess() throws DataAccessException {
+        userDAO.addUser(USER);
         gameDAO.addGame(game);
-        gameDAO.joinGame(ChessGame.TeamColor.BLACK,user.username(),game.gameID());
+        gameDAO.joinGame(ChessGame.TeamColor.BLACK, USER.username(),game.gameID());
         Collection<GameData> games = gameDAO.listGames();
         games.stream().filter((g)->g.gameID()==game.gameID()).findFirst().ifPresent((gameData)->{
-            Assertions.assertEquals(user.username(),gameData.blackUsername());
+            Assertions.assertEquals(USER.username(),gameData.blackUsername());
         });
         Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
-    void SqlJoinGameFail() throws DataAccessException {
-        userDAO.addUser(user);
+    void sqlJoinGameFail() throws DataAccessException {
+        userDAO.addUser(USER);
         gameDAO.addGame(game);
-        gameDAO.joinGame(ChessGame.TeamColor.BLACK,user.username(),game.gameID());
+        gameDAO.joinGame(ChessGame.TeamColor.BLACK, USER.username(),game.gameID());
         Assertions.assertThrows(InUseException.class,
-                ()->gameDAO.joinGame(ChessGame.TeamColor.BLACK,user.username(),game.gameID()));
+                ()->gameDAO.joinGame(ChessGame.TeamColor.BLACK, USER.username(),game.gameID()));
         Assertions.assertFalse(gameDAO.isEmpty());
     }
 
     @Test
-    void SqlGameStateMaintained() throws DataAccessException {
-        userDAO.addUser(user);
+    void sqlGameStateMaintained() throws DataAccessException {
+        userDAO.addUser(USER);
         ChessGame randomGame = getChessGameRandomBoard();
         GameData gameData = new GameData(5,"Bob","Bob","GameName123",randomGame);
         gameDAO.addGame(gameData);

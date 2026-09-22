@@ -96,4 +96,23 @@ public class DatabaseManager {
             throw new RuntimeException("Unable to process file "+sqlName, e);
         }
     }
+
+
+     /*package-private*/ static boolean isEmpty(String table) throws DataAccessException{
+        String sql = """
+            SELECT CASE
+                WHEN EXISTS(SELECT 1 FROM %s) THEN 0
+                ELSE 1
+            END AS IsEmpty;""".formatted(table);
+        try(Connection conn = getConnection()){
+            try(PreparedStatement ps = conn.prepareStatement(sql)){
+                ps.execute();
+                ResultSet rs = ps.getResultSet();
+                rs.next();
+                return rs.getBoolean("IsEmpty");
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error:internal server error",e);
+        }
+    }
 }

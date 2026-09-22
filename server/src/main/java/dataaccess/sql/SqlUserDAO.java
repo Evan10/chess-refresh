@@ -10,7 +10,7 @@ import java.sql.*;
 import static dataaccess.sql.DatabaseManager.getConnection;
 
 public class SqlUserDAO implements UserDAO {
-    public SqlUserDAO(){};
+    public SqlUserDAO(){}
 
     @Override
     public void clearUsers() throws DataAccessException {
@@ -69,20 +69,6 @@ public class SqlUserDAO implements UserDAO {
 
     @Override
     public boolean isEmpty() throws DataAccessException{
-        String sql = """
-            SELECT CASE
-                WHEN EXISTS(SELECT 1 FROM users) THEN 0
-                ELSE 1
-            END AS IsEmpty;""";
-        try(Connection conn = getConnection()){
-            try(PreparedStatement ps = conn.prepareStatement(sql)){
-                ps.execute();
-                ResultSet rs = ps.getResultSet();
-                rs.next();
-                return rs.getBoolean("IsEmpty");
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Error: internal server error",e);
-        }
+        return DatabaseManager.isEmpty("users");
     }
 }

@@ -85,20 +85,6 @@ public class SqlAuthDAO implements AuthDAO {
 
     @Override
     public boolean isEmpty() throws DataAccessException{
-        String sql = """
-            SELECT CASE
-                WHEN EXISTS(SELECT 1 FROM authentication) THEN 0
-                ELSE 1
-            END AS IsEmpty;""";
-        try(Connection conn = getConnection()){
-            try(PreparedStatement ps = conn.prepareStatement(sql)){
-                ps.execute();
-                ResultSet rs = ps.getResultSet();
-                rs.next();
-                return rs.getBoolean("IsEmpty");
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Error:internal server error",e);
-        }
+        return DatabaseManager.isEmpty("authentication");
     }
 }
